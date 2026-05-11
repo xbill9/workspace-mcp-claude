@@ -1,0 +1,54 @@
+{
+  "mcpServers": {
+    "gmail": {
+      "httpUrl": "https://gmailmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.compose"
+        ]
+      }
+    },
+    "drive": {
+      "httpUrl": "https://drivemcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/drive.file"
+        ]
+      }
+    },
+    "calendar": {
+      "httpUrl": "https://calendarmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+          "https://www.googleapis.com/auth/calendar.events.freebusy",
+          "https://www.googleapis.com/auth/calendar.events.readonly"
+        ]
+      }
+    },
+    "people": {
+      "httpUrl": "https://people.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/directory.readonly",
+          "https://www.googleapis.com/auth/userinfo.profile",
+          "https://www.googleapis.com/auth/contacts.readonly"
+        ]
+      }
+    }
+  }
+}
