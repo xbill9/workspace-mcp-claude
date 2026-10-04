@@ -24,6 +24,48 @@
         ]
       }
     },
+    "docs": {
+      "httpUrl": "https://docsmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/drive.file",
+          "https://www.googleapis.com/auth/documents.readonly",
+          "https://www.googleapis.com/auth/documents"
+        ]
+      }
+    },
+    "sheets": {
+      "httpUrl": "https://sheetsmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/drive.file",
+          "https://www.googleapis.com/auth/spreadsheets.readonly",
+          "https://www.googleapis.com/auth/spreadsheets"
+        ]
+      }
+    },
+    "slides": {
+      "httpUrl": "https://slidesmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/drive.file",
+          "https://www.googleapis.com/auth/presentations.readonly",
+          "https://www.googleapis.com/auth/presentations"
+        ]
+      }
+    },
     "calendar": {
       "httpUrl": "https://calendarmcp.googleapis.com/mcp/v1",
       "oauth": {
@@ -34,6 +76,21 @@
           "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
           "https://www.googleapis.com/auth/calendar.events.freebusy",
           "https://www.googleapis.com/auth/calendar.events.readonly"
+        ]
+      }
+    },
+    "chat": {
+      "httpUrl": "https://chatmcp.googleapis.com/mcp/v1",
+      "oauth": {
+        "enabled": true,
+        "clientId": "${CLIENT_ID}",
+        "clientSecret": "${CLIENT_SECRET}",
+        "scopes": [
+          "https://www.googleapis.com/auth/chat.spaces.readonly",
+          "https://www.googleapis.com/auth/chat.memberships.readonly",
+          "https://www.googleapis.com/auth/chat.messages.readonly",
+          "https://www.googleapis.com/auth/chat.messages.create",
+          "https://www.googleapis.com/auth/chat.users.readstate"
         ]
       }
     },

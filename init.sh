@@ -22,14 +22,20 @@ echo "Using Project ID " $PROJECT_ID
 
 gcloud services enable gmail.googleapis.com \
 drive.googleapis.com \
+docs.googleapis.com \
+sheets.googleapis.com \
+slides.googleapis.com \
 calendar-json.googleapis.com \
 chat.googleapis.com \
 people.googleapis.com --project=$PROJECT_ID
 
-gcloud services enable calendarmcp.googleapis.com \
-	chatmcp.googleapis.com \
+gcloud services enable gmailmcp.googleapis.com \
 	drivemcp.googleapis.com \
-	gmailmcp.googleapis.com --project=$PROJECT_ID
+	docsmcp.googleapis.com \
+	sheetsmcp.googleapis.com \
+	slidesmcp.googleapis.com \
+	calendarmcp.googleapis.com \
+	chatmcp.googleapis.com --project=$PROJECT_ID
 
 cat <<EOF > .env
 GOOGLE_GENAI_USE_VERTEXAI=True

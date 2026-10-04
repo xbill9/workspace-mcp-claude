@@ -1,21 +1,24 @@
 #!/bin/bash
 
-echo "/mcp auth calendar"
-echo "Chat"
+SERVERS="gmail drive docs sheets slides calendar chat people"
+
+echo "Claude Code"
+echo "==========="
+echo "Register the servers:  source ./save_oauth.sh && ./claude_setup.sh"
+echo "Then authenticate each one (or use /mcp inside Claude Code):"
 echo ""
-echo "/mcp auth chat"
-echo "Drive"
+for s in $SERVERS; do
+    echo "  claude mcp login $s"
+done
 echo ""
-echo "/mcp auth drive"
-echo "Gmail"
+echo "Verify: claude mcp list"
 echo ""
-echo "/mcp auth gmail"
-echo "People"
+echo "Gemini CLI"
+echo "=========="
+echo "Run these inside Gemini CLI and follow the browser prompts:"
 echo ""
-echo "/mcp auth people"
-echo "Follow the prompts in your browser to authorize each service."
+for s in $SERVERS; do
+    echo "  /mcp auth $s"
+done
 echo ""
-echo "Verify Connection"
-echo "Verify that the tools are loaded and ready:"
-echo ""
-echo "/mcp list"
+echo "Verify: /mcp list"
