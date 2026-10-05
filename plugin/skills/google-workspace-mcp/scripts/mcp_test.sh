@@ -67,14 +67,16 @@ for s in servers:
     ids = [i for i, n in calls.items() if n.startswith(f"mcp__{s}__")]
     ok = [i for i in ids if i in results and not results[i]]
     bad = [i for i in ids if results.get(i)]
-    if s not in connected:
-        status = "NOT REGISTERED"
-    elif connected[s] != "connected":
-        status = f"NOT CONNECTED ({connected[s]})"
-    elif bad:
+    # Tool results decide first: a server still connecting when the session
+    # starts reports "pending" in the init event, then answers normally.
+    if bad:
         status = "FAIL"
     elif ok:
         status = "PASS"
+    elif s not in connected:
+        status = "NOT REGISTERED"
+    elif connected[s] != "connected":
+        status = f"NOT CONNECTED ({connected[s]})"
     else:
         status = "NOT CALLED"
     tools = sorted({calls[i].split("__")[2] for i in ids})

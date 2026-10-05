@@ -1,0 +1,18 @@
+> Find my most recent Google Slides presentation and give me its title, its slide count, and a three-bullet summary of what it covers.
+
+  ✅ mcp__drive__search_files
+  ✅ mcp__drive__search_files
+  ✅ mcp__slides__read_presentation
+  ✅ Bash  echo "30_37 12_0 30_0 30_8 30_13 30_19 30_25 30_43 30_51 30_57 30_63 30_68 30_73 30_78 30_83 30_92 30_88 30_97 30_102 30_107 30_113 30_118 30_136 30_142 30_162 5_0 30_153 30_158 32_0" | wc -w
+
+Your most recent presentation is **Gemma4 Local**. It was last modified 2026-10-01 and you last opened it today. A Drive search for presentations modified after that date returned only this deck, so nothing newer exists.
+
+- **Title:** Gemma4 Local. The subtitle is "Deploying next-generation open-weights models on local hardware environments."
+- **Slide count:** 29. I counted the slide IDs the Slides API returned with `wc`. Eight of the 29 slides have no text, so they're probably images or screenshots. The summary below comes from the text on the other slides.
+
+**What it covers:**
+- **The Gemma 4 model family.** It explains what Gemma is: open weights under the Apache license, and a separate model from Gemini. It then goes through the sizes: E2B and E4B for edge devices, the 26B A4B mixture-of-experts model, and the 31B dense model. It also includes two newer additions: the 12B mid-size model and quantization-aware training (QAT) to shrink the weights for low-end hardware.
+- **Ways to access and host it.** Options include AI Studio, Model Garden, local hosting (Ollama, vLLM, Docker, Edge Gallery on mobile) and Google Cloud. On Google Cloud that means TPUs (v5e, v5p, v6e, Ironwood), Cloud Run with L4 or 96 GB GPUs, VMs with attached GPUs, and GKE.
+- **Live demos and next steps.** The demos are a self-contained Tesla T4 VM on Google Cloud and a 4 GB laptop GPU running a QAT model, plus others in the repo across Cloud Run, GKE, TPU, AWS and Azure. The "Future" slide lists a vLLM QAT TPU pull request, a v5e deep dive, a v6e comparison, QAT and GGUF repacks, JAX on AWS Inf2, and a "lite" GKE demo.
+
+The deck opens with your speaker slides (bio, where to find you, recent articles). It links to https://docs.google.com/presentation/d/1wCQMra7tyYjI8m-_-KgI_UVukc6fgQwekViLTAGagrA/edit

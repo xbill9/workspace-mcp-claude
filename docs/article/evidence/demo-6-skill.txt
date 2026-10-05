@@ -1,0 +1,46 @@
+> Is my Google Workspace MCP setup for Claude Code working? Check it, but do not sign anything in or change anything.
+
+  ✅ Skill  google-workspace-mcp:google-workspace-mcp
+  ✅ Bash  "/home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_status.sh" --verify; echo "exit=$?"; ls ~/project_id.txt ~/client_id.txt ~/client_secret.txt 2>&1; gcloud auth print-access-token >/dev/null 2>&1 && echo gcloud-ok || echo gcloud-fail
+  ✅ Bash  claude mcp list 2>&1 | head -40; echo ---; grep -l -E 'gmailmcp|drivemcp|googleapis.com/mcp' ~/.claude.json ~/.mcp.json ./.mcp.json 2>/dev/null; python3 -c "
+import json
+d=json.load(open('/home/xbill/.claude.json'))
+print('user:',[k for k in d.get('mcpServers',{})])
+for p,v in d.get('projects',{}).items():
+    s=list(v.get('mcpServers',{}))
+    if s: print(p,s)
+"
+  ✅ Bash  cd /home/xbill/workspace-mcp-claude && "/home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_test.sh"; echo "exit=$?"; "/home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_status.sh" --verify
+  ✅ Bash  grep -n -i -E 'pending|NOT CONNECTED' /home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_test.sh | head -20
+  ✅ Bash  sed -n 40,95p /home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_test.sh
+
+Yes, it works. All eight Workspace servers answered a real read-only call, and Google accepts all eight sign-ins. I didn't sign in or change anything.
+
+The setup files (`~/project_id.txt`, `~/client_id.txt`, `~/client_secret.txt`) are present and gcloud authenticates.
+
+**Read-only test** (`mcp_test.sh`, run from `~/workspace-mcp-claude`):
+
+```
+server    result            ok  err  tools
+gmail     PASS               1    0  list_labels
+drive     PASS               4    0  list_recent_files, search_files
+docs      PASS               1    0  read_doc
+sheets    PASS               1    0  get_spreadsheet
+slides    NOT CONNECTED (pending)   1    0  read_presentation
+calendar  PASS               1    0  list_calendars
+chat      PASS               1    0  search_conversations
+people    PASS               1    0  get_user_profile
+
+7 of 8 servers passed.
+```
+
+The test counts Slides as a failure, but Slides works. Its `read_presentation` call succeeded with no errors. When the test session started, Slides hadn't finished connecting yet, and the script grades a server by that starting state before it looks at the call results. So a slow-starting server shows as failed even when its calls succeed. The fix would be a small change to the script; I left it alone since you asked for no changes.
+
+**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show "Needs authentication", and you'll need to sign in again with `/mcp`. Sign in to People first, because a repeat People sign-in makes Google revoke the tokens of the other servers.
+
+Two other things to know:
+- **The servers only exist in `~/workspace-mcp-claude`.** They're registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn't show them and their tools aren't available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.
+- **Other MCP servers in this session have problems.** None of these affect Workspace:
+  - **Google Compute Engine** (claude.ai connector) needs authentication.
+  - **developer-knowledge** (google-cloud-developer plugin) fails to connect: "Incompatible auth server: does not support dynamic client registration".
+  - **aws-mcp** fails to connect with `-32602 Invalid request parameters`.

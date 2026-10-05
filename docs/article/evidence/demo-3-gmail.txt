@@ -1,0 +1,10 @@
+> How many unread threads are in my Gmail inbox? Use the count the Gmail search returns rather than counting results yourself. Reply with the number and the query you used, and nothing about the individual emails.
+
+  ✅ mcp__gmail__search_threads
+
+Gmail's search returned **2** unread threads in your inbox.
+
+- **Query:** `in:inbox is:unread`
+- **Count:** `resultCountEstimate: "2"`. That's the number Gmail reported, and it's labelled an estimate.
+
+One of the two threads that came back no longer has the `UNREAD` label, so it was probably read recently and the search index hasn't caught up. The live number may be 1.

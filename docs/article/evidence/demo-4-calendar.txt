@@ -1,0 +1,18 @@
+> Suggest a free 30-minute slot for a meeting tomorrow afternoon on my primary calendar. Read only, do not create anything.
+
+  ✅ mcp__calendar__list_calendars
+  ✅ mcp__calendar__list_events
+  ✅ mcp__calendar__suggest_time
+
+I suggest **Monday, October 5, 2:00–2:30 PM Eastern**.
+
+Your primary calendar (xbill@glitnir.com, Eastern time) has one event tomorrow afternoon: **[TPU] Office Hours, 1:30–2:00 PM**. I asked Calendar's free-time search for openings between noon and 5 PM, and it returned two:
+
+- 🟢 **12:00–1:30 PM** (90 minutes)
+- 🟢 **2:00–5:00 PM** (3 hours)
+
+I picked 2:00 PM because it starts the longest open stretch, so the meeting can run over without a conflict. 12:00–12:30 is also free if you'd rather go before the office hours.
+
+⚠️ You haven't responded to the TPU Office Hours invite yet, but Calendar still counts it as busy. If you skip it, 12:00–5:00 is open, apart from that one half-hour.
+
+This only read your calendar. I didn't create or change anything.

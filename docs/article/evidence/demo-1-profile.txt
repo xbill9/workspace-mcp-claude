@@ -1,0 +1,5 @@
+> According to my Google profile, what is my name?
+
+  ✅ mcp__people__get_user_profile
+
+Your Google profile name is **xbill work** (account xbill@glitnir.com).
