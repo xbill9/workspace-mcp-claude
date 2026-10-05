@@ -15,4 +15,4 @@ Your most recent presentation is **Gemma4 Local**. It was last modified 2026-10-
 - **Ways to access and host it.** Options include AI Studio, Model Garden, local hosting (Ollama, vLLM, Docker, Edge Gallery on mobile) and Google Cloud. On Google Cloud that means TPUs (v5e, v5p, v6e, Ironwood), Cloud Run with L4 or 96 GB GPUs, VMs with attached GPUs, and GKE.
 - **Live demos and next steps.** The demos are a self-contained Tesla T4 VM on Google Cloud and a 4 GB laptop GPU running a QAT model, plus others in the repo across Cloud Run, GKE, TPU, AWS and Azure. The "Future" slide lists a vLLM QAT TPU pull request, a v5e deep dive, a v6e comparison, QAT and GGUF repacks, JAX on AWS Inf2, and a "lite" GKE demo.
 
-The deck opens with your speaker slides (bio, where to find you, recent articles). It links to https://docs.google.com/presentation/d/1wCQMra7tyYjI8m-_-KgI_UVukc6fgQwekViLTAGagrA/edit
+The deck opens with your speaker slides (bio, where to find you, recent articles). It links to [link to the deck removed]
