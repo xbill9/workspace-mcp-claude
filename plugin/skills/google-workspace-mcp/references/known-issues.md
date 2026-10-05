@@ -26,24 +26,29 @@ Evidence:
   `scopes` and `authServerMetadataUrl`; none of them adds an authorization
   parameter.
 
-## 2. A later sign-in can revoke earlier ones
+## 2. A repeat People sign-in revokes the other servers' tokens
 
-Signing one server in again made Google revoke the tokens of the other seven
-servers, all issued through the same OAuth client, while those tokens still
-had about 35 minutes left.
+Signing the People server in again makes Google revoke the tokens of every
+other server signed in before it, all issued through the same OAuth client,
+while those tokens still have most of their hour left. Reproduced twice.
 
-Evidence, in order:
+Evidence:
 
-1. Eight servers signed in one after another; `mcp_test.sh` passed 8 of 8.
-2. The People server was signed in again.
-3. Google's tokeninfo endpoint rejected the Gmail, Drive, Docs, Sheets,
-   Slides, Calendar and Chat tokens (HTTP 400) and accepted People's.
-4. Claude Code's debug log showed `Failed to fetch tools: Unauthorized` for
-   those servers, and their tools were missing from new sessions.
+| Sign-in order | Result (Google tokeninfo) |
+|---|---|
+| Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People (first time for all) | 8 of 8 valid; `mcp_test.sh` passed 8 of 8 |
+| People again | Gmail through Chat rejected (HTTP 400), People valid |
+| Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People | Gmail through Chat valid after each other's sign-ins; after People, the seven rejected, People valid |
+| People, then Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat | 8 of 8 valid; `mcp_test.sh` passed 8 of 8 |
 
-The first round of eight sequential sign-ins did not revoke each other: all
-eight passed together. The revocations followed a repeat sign-in for a server
-that already held a grant. The exact trigger on Google's side is unconfirmed.
+Sign-ins for the other seven servers revoke neither each other nor People.
+People's repeat sign-in differs in one visible way: Google first shows "Sign in
+to Workspace MCP Servers" (name and profile picture) and adds a `profile`
+scope to the grant. Why Google revokes the other tokens is unconfirmed.
+
+After a revocation, Claude Code's debug log shows
+`Failed to fetch tools: Unauthorized` for the affected servers, and their tools
+are missing from new sessions.
 
 ### Why it is easy to miss
 
@@ -59,10 +64,11 @@ that already held a grant. The exact trigger on Google's side is unconfirmed.
 
 ## Working with these limits
 
-- Sign in all servers in one pass, then run `mcp_status.sh --verify` and
-  `mcp_test.sh` straight away.
-- Avoid signing in a single server that is already signed in. When one server
-  needs it, sign in all of them again in one pass.
+- Sign in People first, then the other seven, in one pass; then run
+  `mcp_status.sh --verify` and `mcp_test.sh` straight away. `bootstrap.sh`
+  uses this order.
+- When People needs signing in again, sign the other seven in again after it.
+  Any other server can be signed in again on its own.
 - `mcp_login.sh start` drops the server's current sign-in immediately, so do
   not use it on a server that still works.
 - Before a working session, run `mcp_status.sh --verify`; if any token is

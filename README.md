@@ -17,15 +17,15 @@ Then ask Claude Code something like *"connect my Gmail and Drive to Claude Code"
 
 ## Known issues: sign-in
 
-Two limits, measured on 2026-10-04 with Claude Code 2.1.289 and one OAuth client shared by all eight servers. Details and evidence: [`known-issues.md`](plugin/skills/google-workspace-mcp/references/known-issues.md).
+Two limits, measured on 2026-10-04 with Claude Code 2.1.289 and one OAuth client shared by all eight servers. Details and evidence: [`known-issues.md`](plugin/skills/google-workspace-mcp/references/known-issues.md). Every other quirk seen during setup (sign-in pages, servers, Claude Code, Cloud console, environment) is catalogued in [`quirks.md`](plugin/skills/google-workspace-mcp/references/quirks.md).
 
 - ⚠️ **Sign-ins last about an hour.** Google issues them without a refresh token (Claude Code's authorization request has no `access_type=offline`), so Claude Code cannot renew them.
-- ⚠️ **A later sign-in can revoke earlier ones.** Signing one server in again made Google revoke the other seven servers' tokens while they still had about 35 minutes left. `claude mcp list` keeps showing `✔ Connected`, and in a session those servers' tools are simply missing.
+- ⚠️ **A repeat People sign-in revokes the other servers' tokens.** Signing People in again made Google revoke every token issued before it, while they still had most of their hour left (reproduced twice). Sign-ins for the other seven revoke nothing. `claude mcp list` keeps showing `✔ Connected`, and in a session the revoked servers' tools are simply missing.
 
 To work with them:
 
-- Sign in all eight servers in one pass, then run `./mcp_status.sh --verify` and `./mcp_test.sh`.
-- When any server needs signing in again, sign all of them in again.
+- 🟢 Sign in People first, then Gmail, Drive, Docs, Sheets, Slides, Calendar and Chat, then run `./mcp_status.sh --verify` and `./mcp_test.sh`. `bootstrap.sh` uses this order.
+- 🟢 When People needs signing in again, sign the other seven in again after it. Any other server can be signed in again on its own.
 - Before a working session, `./mcp_status.sh --verify` reports each token as `valid`, `expired` or `revoked`.
 
 ## Servers

@@ -14,6 +14,9 @@
 # `start` drops the server's existing sign-in straight away, even if the new
 # one is never finished. Only start a server that needs signing in.
 #
+# Sign in People before the others: a repeat People sign-in revokes the
+# tokens of every server signed in before it.
+#
 # Run it from the directory the servers were registered for (MCP_SCOPE=local).
 
 ACTION=$1

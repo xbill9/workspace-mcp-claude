@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SERVERS="gmail drive docs sheets slides calendar chat people"
+# People first: a repeat People sign-in revokes the other servers' earlier tokens.
+SERVERS="people gmail drive docs sheets slides calendar chat"
 
 echo "Claude Code"
 echo "==========="

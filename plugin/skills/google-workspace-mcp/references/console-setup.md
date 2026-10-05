@@ -97,13 +97,18 @@ Bash tool use `scripts/mcp_login.sh`:
 
 1. `mcp_login.sh start <server>` prints the Google sign-in URL and leaves a
    listener on `localhost:8765`.
-2. Open the URL in a Chrome tab, choose the account, review the permissions
-   shown (they should match `servers.md`), click **Allow**. When the server
-   was approved before, Google first shows **Continue**, then the permissions.
+2. Open the URL in a Chrome tab and choose the account: click it and press
+   Enter, and do it again if "Choose an account" is still showing (the first
+   interaction after the page loads is often ignored). Review the permissions
+   shown (they should match `servers.md`) and click **Allow**; for Chat, scroll
+   down first. People also shows "Sign in to Workspace MCP Servers" with a
+   **Continue** button before its permissions.
 3. The tab lands on `localhost:8765/callback`; `mcp_login.sh check <server>`
    prints `Signed in: <server>`.
 
-One server at a time: they share the callback port. `start` drops the
+One server at a time: they share the callback port. People first: a repeat
+People sign-in revokes every token issued before it (`known-issues.md`).
+`start` drops the
 server's existing sign-in, so only start servers that need it. The consent is
 a grant of access to the user's Google data; do it only when the user has
 asked for the sign-in to be done for them.

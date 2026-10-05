@@ -23,7 +23,9 @@ Scripts (run from the user's project directory, never `cd` into the skill):
 | `${CLAUDE_SKILL_DIR}/scripts/mcp_probe.sh` | no-credential probe: MCP spec versions, tool lists, resource scopes |
 
 Server URLs, the 21 scopes and tool lists are in `references/servers.md`.
-Sign-in limits and how to work with them are in `references/known-issues.md`.
+Sign-in limits and how to work with them are in `references/known-issues.md`;
+every other observed quirk (sign-in pages, servers, Claude Code, console) is in
+`references/quirks.md`.
 
 ## Start by finding out what is already done
 
@@ -44,10 +46,11 @@ Two sign-in limits apply (details in `references/known-issues.md`):
 
 - Google issues these sign-ins without a refresh token, so each lasts about an
   hour and then needs signing in again.
-- Signing a server in again can make Google revoke the other servers' tokens.
-  `claude mcp list` still shows them `✔ Connected` and the expiry still shows
-  minutes left; only `--verify` or `mcp_test.sh` reveals it, and in a session
-  their tools are simply missing.
+- A repeat People sign-in makes Google revoke the tokens of every server
+  signed in before it, so People always goes first. `claude mcp list` still
+  shows revoked servers `✔ Connected` and the expiry still shows minutes left;
+  only `--verify` or `mcp_test.sh` reveals it, and in a session their tools are
+  simply missing.
 
 Tell the user both when they finish setup, so a signed-out server later is not
 a surprise.
@@ -95,12 +98,14 @@ The user can run `/mcp` and pick **Authenticate** on each server, or
 `claude mcp login <server>` in their own terminal. That is the simplest path.
 
 If they ask you to do it, `claude mcp login` will not run from the Bash tool
-(no terminal), so use the helper and Chrome, one server at a time:
+(no terminal), so use the helper and Chrome, one server at a time, People
+first:
 
 ```bash
-"${CLAUDE_SKILL_DIR}/scripts/mcp_login.sh" start gmail   # prints the sign-in URL
-# open it in Chrome, choose the account, check the permissions, Allow
-"${CLAUDE_SKILL_DIR}/scripts/mcp_login.sh" check gmail   # Signed in: gmail
+"${CLAUDE_SKILL_DIR}/scripts/mcp_login.sh" start people  # prints the sign-in URL
+# open it in Chrome, choose the account (click it, press Enter; repeat if the
+# chooser is still showing), check the permissions, Allow
+"${CLAUDE_SKILL_DIR}/scripts/mcp_login.sh" check people  # Signed in: people
 ```
 
 Clicking Allow grants access to the user's mail, files and calendar, so only do
@@ -109,9 +114,11 @@ the consent page match `references/servers.md` before allowing. `start` drops
 any existing sign-in for that server, so never start one that is already
 signed in.
 
-Sign in every server in one pass, then go straight to step 6. When a single
-server needs signing in again, sign them all in again: a repeat sign-in for one
-server has revoked the others' tokens (`references/known-issues.md`).
+Order: people, gmail, drive, docs, sheets, slides, calendar, chat, in one pass,
+then go straight to step 6. When People needs signing in again, sign the other
+seven in again after it; any other server can be signed in again on its own.
+Sign-in page quirks (People's extra **Continue** step, Chat's Allow button below
+the fold) are in `references/quirks.md` §1.
 
 ### 6. Test
 
@@ -133,7 +140,7 @@ tell the user to restart Claude Code before using them interactively.
 | Symptom | Cause and fix |
 |---|---|
 | `! Needs authentication`, 401, FAIL in `mcp_test.sh` after it passed earlier | sign-in expired (about an hour, no refresh token): `mcp_status.sh --verify`, then sign all servers in again |
-| tools for a server missing from the session while `claude mcp list` shows `✔ Connected`; `NOT CALLED` in `mcp_test.sh` | token revoked by a later sign-in: `mcp_status.sh --verify` shows `revoked`; sign all servers in again in one pass |
+| tools for a server missing from the session while `claude mcp list` shows `✔ Connected`; `NOT CALLED` in `mcp_test.sh` | token revoked by a repeat People sign-in: `mcp_status.sh --verify` shows `revoked`; sign the revoked servers in again (People stays signed in) |
 | `insufficient_scope` on a tool | the tool needs a scope outside the pinned set (Gmail trash/spam/labels, Calendar writes): add it to the server's entry in `claude_setup.sh` and the consent screen, re-run step 4, sign that server in again |
 | `redirect_uri_mismatch` | the client lacks `http://localhost:$CALLBACK_PORT/callback` |
 | `access_denied` / app not verified | External audience without the user as a test user, or not in the Developer Preview |

@@ -32,7 +32,9 @@ for arg in "$@"; do
     esac
 done
 
-SERVERS="gmail drive docs sheets slides calendar chat people"
+# People first: a repeat People sign-in revokes the tokens of the servers
+# signed in before it (references/known-issues.md).
+SERVERS="people gmail drive docs sheets slides calendar chat"
 
 # --- 1. APIs ---------------------------------------------------------------
 if [ "$DO_APIS" = 1 ]; then
