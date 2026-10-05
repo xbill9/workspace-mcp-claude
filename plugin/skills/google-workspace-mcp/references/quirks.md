@@ -83,9 +83,12 @@ about it. The two sign-in limits with lasting impact have their own page,
   scope exist only for the working directory at the time of `claude mcp add`,
   and `claude mcp list` elsewhere does not show them. Scripts that register
   servers must not `cd` first.
-- **Moving servers to another scope drops their sign-ins.** Registering the
-  eight at `user` scope and removing the `local` copies left every server with
-  no token. Sign in again afterwards, People first.
+- **Moving servers to another scope drops their sign-ins and client secret.**
+  Credentials are stored per server name, so removing the `local` copies after
+  registering the eight at `user` scope left every server with no token, and
+  sign-in then failed with `client_secret is missing`. Run
+  `MCP_SCOPE=user ./claude_setup.sh` again after the removal, then sign in,
+  People first.
 - **The client secret is set only when a server is added**
   (`--client-secret` with `MCP_CLIENT_SECRET`). Changing it means
   `claude mcp remove` and adding the server again.

@@ -465,7 +465,7 @@ Yes, it works. All eight Workspace servers answered a real read-only call, and G
 - **The servers only exist in `~/workspace-mcp-claude`.** They're registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn't show them and their tools aren't available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.
 ```
 
-Moving the servers to `user` scope drops their sign-ins, so sign in to all eight again afterwards, People first.
+Moving the servers to `user` scope drops their sign-ins and their client secret, because both are stored per server name. Remove the `local` copies, run `MCP_SCOPE=user ./claude_setup.sh` once more, then sign in to all eight again, People first.
 
 ---
 
