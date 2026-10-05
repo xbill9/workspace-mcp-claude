@@ -9,7 +9,7 @@
 # Environment (all optional):
 #   CLIENT_ID, CLIENT_SECRET  OAuth web client (default: ~/client_id.txt, ~/client_secret.txt)
 #   CALLBACK_PORT             local OAuth callback port (default: 8765)
-#   MCP_SCOPE                 local | project | user (default: local)
+#   MCP_SCOPE                 user | local | project (default: user)
 #
 # The OAuth client must list http://localhost:$CALLBACK_PORT/callback
 # under Authorized redirect URIs.
@@ -22,7 +22,7 @@ fi
 CLIENT_ID=${CLIENT_ID:-$(cat "$HOME/client_id.txt" 2>/dev/null)}
 CLIENT_SECRET=${CLIENT_SECRET:-$(cat "$HOME/client_secret.txt" 2>/dev/null)}
 CALLBACK_PORT=${CALLBACK_PORT:-8765}
-MCP_SCOPE=${MCP_SCOPE:-local}
+MCP_SCOPE=${MCP_SCOPE:-user}
 
 if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
     echo "Error: OAuth client not set. Run 'source ./save_oauth.sh' first."

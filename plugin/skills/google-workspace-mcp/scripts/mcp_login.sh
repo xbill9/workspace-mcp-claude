@@ -17,7 +17,8 @@
 # Sign in People before the others: a repeat People sign-in revokes the
 # tokens of every server signed in before it.
 #
-# Run it from the directory the servers were registered for (MCP_SCOPE=local).
+# With MCP_SCOPE=local registrations, run it from the directory the servers
+# were registered for.
 
 ACTION=$1
 SERVER=$2

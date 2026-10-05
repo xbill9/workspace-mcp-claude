@@ -82,11 +82,11 @@ moves it into `~/client_secret.txt` (mode 600) without printing it.
 ### 4. Register the servers
 
 ```bash
-MCP_SCOPE=user "${CLAUDE_SKILL_DIR}/scripts/bootstrap.sh" --no-apis --no-login
+"${CLAUDE_SKILL_DIR}/scripts/bootstrap.sh" --no-apis --no-login
 ```
 
-`MCP_SCOPE` decides where the servers live: `local` (default — only this
-project directory, private), `user` (every project), `project` (writes
+`MCP_SCOPE` decides where the servers live: `user` (default — every
+project), `local` (only this project directory, private), `project` (writes
 `.mcp.json` for the team; the secret still stays in each person's credential
 store). Ask if the user's intent is unclear; `user` suits most people who want
 Gmail and Drive everywhere. Run it from the target project directory when

@@ -9,8 +9,8 @@
 # fail per server is computed here from the session's stream-json events (tool
 # calls and their is_error flags), not from the model's own summary.
 #
-# Run it from the directory the servers were registered for (MCP_SCOPE=local)
-# after signing in to each one. Exit status is 0 only if every server passes.
+# With MCP_SCOPE=local registrations, run it from the directory the servers were
+# registered for. Run it after signing in to each one. Exit status is 0 only if every server passes.
 
 SERVERS="${*:-gmail drive docs sheets slides calendar chat people}"
 TIMEOUT=${MCP_TEST_TIMEOUT:-600}

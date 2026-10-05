@@ -182,7 +182,7 @@ workspace-developer: https://workspace-developer.goog/mcp (HTTP) - ✔ Connected
 
 Each server gets its scopes pinned in `oauth.scopes` and the fixed callback port. Claude Code keeps the client secret in its own credential store, so nothing secret reaches `.mcp.json` or `~/.claude.json`.
 
-`MCP_SCOPE` picks where the servers live: `local` (the default, this directory only), `user` (every project) or `project` (a shared `.mcp.json`).
+`MCP_SCOPE` picks where the servers live: `user` (the default, every project), `local` (this directory only) or `project` (a shared `.mcp.json`).
 
 ---
 

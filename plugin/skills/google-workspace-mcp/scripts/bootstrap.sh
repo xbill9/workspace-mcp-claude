@@ -16,8 +16,8 @@
 # screen scopes, the OAuth client itself, and the Chat app configuration.
 # See references/console-setup.md in the google-workspace-mcp skill.
 #
-# Servers are registered for the current directory (MCP_SCOPE=local) unless
-# MCP_SCOPE=user is set, so run it from the project that should get them.
+# Servers are registered for every project (MCP_SCOPE=user). With
+# MCP_SCOPE=local, run it from the project that should get them.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

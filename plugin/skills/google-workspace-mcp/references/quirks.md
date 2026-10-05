@@ -79,7 +79,7 @@ about it. The two sign-in limits with lasting impact have their own page,
   `mcp_status.sh --verify` is the direct check.
 - **New servers and new sign-ins load in the next session.** A session that
   started before them does not see their tools.
-- **`local` scope belongs to a directory.** Servers added with the default
+- **`local` scope belongs to a directory.** Servers added with `local`
   scope exist only for the working directory at the time of `claude mcp add`,
   and `claude mcp list` elsewhere does not show them. Scripts that register
   servers must not `cd` first.

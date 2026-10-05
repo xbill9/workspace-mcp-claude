@@ -77,7 +77,7 @@ Registers all eight Workspace servers plus `workspace-developer` with Claude Cod
 | Variable | Default | Meaning |
 |---|---|---|
 | `CALLBACK_PORT` | `8765` | Port in the redirect URI `http://localhost:PORT/callback` |
-| `MCP_SCOPE` | `local` | `local` (this project, private), `project` (writes `.mcp.json`, no secret), or `user` (all projects) |
+| `MCP_SCOPE` | `user` | `user` (all projects), `local` (this project, private), or `project` (writes `.mcp.json`, no secret) |
 
 ### `mcp_probe.sh`
 Reports, without credentials, each server's advertised MCP versions, negotiated legacy version, tool list and OAuth resource scopes.
