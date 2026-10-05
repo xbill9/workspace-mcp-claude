@@ -1,0 +1,18 @@
+{
+  "name": "workspace-mcp-claude",
+  "owner": {
+    "name": "xbill9",
+    "url": "https://github.com/xbill9"
+  },
+  "metadata": {
+    "description": "Google Workspace remote MCP servers for Claude Code, as a plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "google-workspace-mcp",
+      "source": "./plugin",
+      "description": "Set up, sign in to and test the Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat and People MCP servers in Claude Code."
+    }
+  ]
+}

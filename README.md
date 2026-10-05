@@ -4,6 +4,30 @@ This workspace provides a set of scripts to initialize a Google Cloud project an
 
 Google Workspace MCP is in Developer Preview. Join the [Google Workspace Developer Preview Program](https://developers.google.com/workspace/preview) first.
 
+## Install as a Claude Code plugin
+
+The setup is packaged as the `google-workspace-mcp` skill, so Claude Code can walk through it, check what is already done, sign in and test:
+
+```
+/plugin marketplace add xbill9/workspace-mcp-claude
+/plugin install google-workspace-mcp@workspace-mcp-claude
+```
+
+Then ask Claude Code something like *"connect my Gmail and Drive to Claude Code"*. The skill lives in `plugin/skills/google-workspace-mcp/`: `SKILL.md`, the scripts in `scripts/`, and `references/` for the console steps, scopes and tools. The scripts at the repo root are wrappers around the skill's copies, so `./bootstrap.sh` and the rest work from a clone too.
+
+## Known issues: sign-in
+
+Two limits, measured on 2026-10-04 with Claude Code 2.1.289 and one OAuth client shared by all eight servers. Details and evidence: [`known-issues.md`](plugin/skills/google-workspace-mcp/references/known-issues.md).
+
+- ⚠️ **Sign-ins last about an hour.** Google issues them without a refresh token (Claude Code's authorization request has no `access_type=offline`), so Claude Code cannot renew them.
+- ⚠️ **A later sign-in can revoke earlier ones.** Signing one server in again made Google revoke the other seven servers' tokens while they still had about 35 minutes left. `claude mcp list` keeps showing `✔ Connected`, and in a session those servers' tools are simply missing.
+
+To work with them:
+
+- Sign in all eight servers in one pass, then run `./mcp_status.sh --verify` and `./mcp_test.sh`.
+- When any server needs signing in again, sign all of them in again.
+- Before a working session, `./mcp_status.sh --verify` reports each token as `valid`, `expired` or `revoked`.
+
 ## Servers
 
 | Server | URL | Tools |
@@ -58,6 +82,24 @@ Registers all eight Workspace servers plus `workspace-developer` with Claude Cod
 ### `mcp_probe.sh`
 Reports, without credentials, each server's advertised MCP versions, negotiated legacy version, tool list and OAuth resource scopes.
 
+### `mcp_status.sh`
+Shows, per server, whether it is registered for this directory, whether Claude Code holds a token, and the minutes until it expires. `--verify` also asks Google whether each token is still accepted and reports revoked ones. Token values are never printed.
+
+### `mcp_login.sh`
+Signs in without an interactive terminal (for example from Claude Code's Bash tool): `./mcp_login.sh start gmail` prints the Google sign-in URL and waits on `localhost:8765`; after Allow in the browser, `./mcp_login.sh check gmail` confirms. `start` drops the server's existing sign-in.
+
+### `mcp_test.sh`
+Read-only end-to-end test. Runs one headless Claude Code session allowed only read tools (Gmail labels, recent Drive files, one Doc, Sheet and Slides deck found by search, calendar list, Chat conversations, your profile) and grades each server from the tool results:
+
+```
+server    result            ok  err  tools
+gmail     PASS               1    0  list_labels
+...
+8 of 8 servers passed.
+```
+
+`./mcp_test.sh slides` tests one server. Exit status is 0 only when every server passes.
+
 ### `mcp_setup.sh`
 Prints the authentication commands for Claude Code and Gemini CLI.
 
@@ -85,7 +127,7 @@ Most servers show `✔ Connected` before sign-in because they answer `tools/list
 5. `source ./save_oauth.sh` and enter the client ID and secret.
 6. `./claude_setup.sh`
 7. Authenticate each server with `/mcp` inside Claude Code, or `claude mcp login gmail` (and so on) from the shell. Over SSH, add `--no-browser`.
-8. Verify with `claude mcp list`, then try a prompt such as *"When is my next meeting?"*.
+8. Verify with `./mcp_status.sh` and `./mcp_test.sh`, then try a prompt such as *"When is my next meeting?"*.
 
 ### OAuth scopes
 
