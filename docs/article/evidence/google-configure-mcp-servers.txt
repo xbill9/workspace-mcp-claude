@@ -1,0 +1,438 @@
+# https://developers.google.com/workspace/guides/configure-mcp-servers, fetched 2026-10-05T00:38Z
+Developer Preview: Available as part of the
+ Google Workspace Developer Preview Program ,
+which grants early access to certain features. 
+ Google Workspace offers remote
+ Model Context Protocol (MCP) 
+servers that allow AI agents to securely interact with Google Workspace data.
+By configuring the Google Workspace MCP servers, you enable AI applications
+like Google Antigravity and Claude to perform actions
+in Google Workspace applications like Gmail, Google Drive,
+Google Docs, Google Sheets, Google Slides, Google Calendar, and Google Chat. Each Google Workspace product has its own
+dedicated MCP server. 
+ The Google Workspace MCP servers provide a standardized way for AI agents to: 
+ Read data : Search emails, retrieve files, and list calendar events. 
+ Take action : Create draft emails, upload files, and schedule meetings. 
+ Respect security : Inherit the same permissions and data governance
+controls as the user. 
+ Prerequisites 
+ Membership in the
+ Google Workspace Developer Preview Program . 
+ A Google Cloud project. To create a project, see
+ Create a project . 
+ An MCP client, like Google Antigravity . 
+ To run the commands on this page, set up the gcloud CLI in a local
+development environment by following these steps: 
+ Install the Google Cloud CLI .
+ If you installed the gcloud CLI previously, make sure you have the
+ latest version by running gcloud components update . 
+ If you're using an external identity provider (IdP), sign in to the
+ gcloud CLI with your federated identity. For more information, see
+ Sign in to the gcloud CLI with your federated identity . 
+ Initialize the gcloud CLI . 
+ Configure the Google Workspace MCP servers 
+ To use the Google Workspace MCP servers, you must enable them in your
+Google Cloud project and then configure your MCP client to connect to them. 
+ Enable the APIs 
+ To use the Google Workspace MCP servers, you must enable the following APIs
+in your Google Cloud project: 
+ Gmail API 
+ Google Drive API 
+ Google Docs API 
+ Google Sheets API 
+ Google Slides API 
+ Google Calendar API 
+ Google Chat API 
+ People API 
+ CLI gcloud services enable gmail.googleapis.com \ 
+drive.googleapis.com \ 
+docs.googleapis.com \ 
+sheets.googleapis.com \ 
+slides.googleapis.com \ 
+calendar-json.googleapis.com \ 
+chat.googleapis.com \ 
+people.googleapis.com --project = PROJECT_ID 
+ Replace PROJECT_ID with your Google Cloud project ID. 
+ Console Enable the APIs in the Google Cloud console: 
+ Enable the APIs 
+ Enable the MCP services 
+ To enable the MCP components for each Google Workspace product, you must
+enable the following services in your Google Cloud project: 
+ Gmail MCP API 
+ Google Drive MCP API 
+ Google Docs MCP API 
+ Google Sheets MCP API 
+ Google Slides MCP API 
+ Google Calendar MCP API 
+ Google Chat MCP API 
+ People MCP API 
+ CLI gcloud services enable gmailmcp.googleapis.com \ 
+drivemcp.googleapis.com \ 
+docsmcp.googleapis.com \ 
+sheetsmcp.googleapis.com \ 
+slidesmcp.googleapis.com \ 
+calendarmcp.googleapis.com \ 
+chatmcp.googleapis.com \ 
+people.googleapis.com --project = PROJECT_ID 
+ Replace PROJECT_ID with your Google Cloud project ID. 
+ Console Enable the MCP services in the Google Cloud console: 
+ Enable the MCP services 
+ Configure the Chat app 
+ To use the Google Chat MCP server, you must configure a
+Chat app in your Google Cloud project. 
+ In the Google Cloud console, search for Google Chat API , and click
+ Google Chat API > Manage > Configuration . 
+ Go to Google Chat API 
+ Set up the Chat app: 
+ In App name field, enter Chat MCP . 
+ In Avatar URL field, enter
+ https://developers.google.com/chat/images/quickstart-app-avatar.png . 
+ In Description , enter Chat MCP server . 
+ Under Functionality , turn off interactive features by toggling
+ Enable interactive features off. 
+ Under Logs , select Log errors to Logging . 
+ Click Save . 
+ To learn more about building a Chat app, see
+ Choose a Google Chat app architecture . 
+ Set up the OAuth consent screen 
+ The Google Workspace MCP servers use OAuth 2.0 for authentication and authorization.
+You must configure the OAuth consent screen before you can create an OAuth client ID. 
+ In the Google Cloud console, go to Google Auth Platform > Branding . 
+ Go to Branding 
+ If you have already configured the Google Auth Platform , you can configure
+the following OAuth Consent Screen settings in
+ Branding ,
+ Audience ,
+and Data Access .
+If you see a message that says Google Auth Platform not configured yet ,
+click Get Started : 
+ Under App Information , in App name , type Workspace MCP Servers . 
+ In User support email , select your email address or an appropriate Google group. 
+ Click Next . 
+ Under Audience , select Internal . If you can't select Internal , select External . 
+ Click Next . 
+ Under Contact Information , enter an Email address where you can be notified about any changes to your project. 
+ Click Next . 
+ Under Finish , review the Google API Services User Data Policy and if you agree, select I agree to the Google API Services: User Data Policy . 
+ Click Continue . 
+ Click Create . 
+ If you selected External for user type, add test users:
+ Click Audience . 
+ Under Test users , click Add users . 
+ Enter your email address and any other authorized test users, then click Save . 
+ Click Data Access > Add or Remove Scopes . A panel appears with a list of scopes for each API that you've enabled in your Google Cloud project. 
+ Under Manually add scopes , paste the scopes for the MCP servers
+you want to use: 
+ Gmail :
+ https://www.googleapis.com/auth/gmail.readonly 
+ https://www.googleapis.com/auth/gmail.compose 
+ Google Drive :
+ https://www.googleapis.com/auth/drive.readonly 
+ https://www.googleapis.com/auth/drive.file 
+ Google Docs :
+ https://www.googleapis.com/auth/drive.readonly 
+ https://www.googleapis.com/auth/drive.file 
+ https://www.googleapis.com/auth/documents.readonly 
+ https://www.googleapis.com/auth/documents 
+ Google Sheets :
+ https://www.googleapis.com/auth/drive.readonly 
+ https://www.googleapis.com/auth/drive.file 
+ https://www.googleapis.com/auth/spreadsheets.readonly 
+ https://www.googleapis.com/auth/spreadsheets 
+ Google Slides :
+ https://www.googleapis.com/auth/drive.readonly 
+ https://www.googleapis.com/auth/drive.file 
+ https://www.googleapis.com/auth/presentations.readonly 
+ https://www.googleapis.com/auth/presentations 
+ Google Calendar :
+ https://www.googleapis.com/auth/calendar.calendarlist.readonly 
+ https://www.googleapis.com/auth/calendar.events.freebusy 
+ https://www.googleapis.com/auth/calendar.events.readonly 
+ Google Chat :
+ https://www.googleapis.com/auth/chat.spaces.readonly 
+ https://www.googleapis.com/auth/chat.memberships.readonly 
+ https://www.googleapis.com/auth/chat.messages.readonly 
+ https://www.googleapis.com/auth/chat.messages.create 
+ https://www.googleapis.com/auth/chat.users.readstate 
+ People API :
+ https://www.googleapis.com/auth/directory.readonly 
+ https://www.googleapis.com/auth/userinfo.profile 
+ https://www.googleapis.com/auth/contacts.readonly 
+ Click Add to Table . 
+ Click Update . 
+ After selecting the scopes required by your app, on the Data Access page, click Save . 
+ Configure your MCP client 
+ To add the Google Workspace remote MCP server to your MCP client, follow the
+instructions for your client. 
+ Antigravity To add the Google Workspace remote MCP servers to Antigravity,
+add the server configuration to your mcp_config.json file. These
+instructions support Antigravity 2.0, Antigravity IDE, and Antigravity CLI. 
+ Create an OAuth 2.0 client ID and secret: 
+ In the Google Cloud console, go to Google Auth Platform > 
+ Clients > 
+ Create Client 
+ Go to Create Client 
+ Select Web application as the application type. 
+ Enter a Name . 
+ In the Authorized redirect URIs section, click + Add URI ,
+and then add https://antigravity.google/oauth-callback in the
+ URIs field. 
+ Click Create and copy your Client ID and Client Secret . 
+ Open or create the configuration file ~/.gemini/config/mcp_config.json . 
+ Add the mcpServers configuration to mcp_config.json : 
+ { 
+ "mcpServers" : { 
+ "gmail" : { 
+ "serverUrl" : "https://gmailmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "drive" : { 
+ "serverUrl" : "https://drivemcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "docs" : { 
+ "serverUrl" : "https://docsmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "sheets" : { 
+ "serverUrl" : "https://sheetsmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "slides" : { 
+ "serverUrl" : "https://slidesmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "calendar" : { 
+ "serverUrl" : "https://calendarmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "chat" : { 
+ "serverUrl" : "https://chatmcp.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ }, 
+ "people" : { 
+ "serverUrl" : "https://people.googleapis.com/mcp/v1" , 
+ "oauth" : { 
+ "clientId" : " OAUTH_CLIENT_ID " , 
+ "clientSecret" : " OAUTH_CLIENT_SECRET " 
+ } 
+ } 
+ } 
+ } 
+ Replace the following: 
+ OAUTH_CLIENT_ID : The client ID you created. 
+ OAUTH_CLIENT_SECRET : The client secret you created. 
+ Save mcp_config.json . 
+ Authenticate the MCP servers. You can authenticate using either the
+GUI settings or the CLI: 
+ For Antigravity IDE or GUI (Antigravity 2.0): 
+ Open your settings screen (e.g., click Settings at the
+bottom-left or open Antigravity User Settings ). 
+ Navigate to Customizations . 
+ Under Installed MCP Servers , click Refresh . 
+ For each server listed ( gmail , drive , docs ,
+ sheets , slides , calendar , chat , and people ), click
+ Authenticate , sign in to your Google Account, copy the
+authorization code, paste it into the input dialog, and click
+ Submit . 
+ For Antigravity CLI: 
+ Start Antigravity CLI: 
+ agy
+ Open the interactive MCP management panel by running: 
+ /mcp
+ Authenticate each MCP server: 
+ Use the arrow keys to select the server, move to the
+ Authenticate action, and press Enter . Complete the
+sign-in flow in your browser, copy the authorization code,
+paste it into the terminal prompt, and press Enter . 
+ Repeat these steps for each server you configured ( gmail ,
+ drive , docs , sheets , slides , calendar , chat ,
+and people ). 
+ Verify that the servers are correctly configured and running: 
+ For Antigravity IDE or GUI: A Sign out button is displayed
+next to each server under Customizations >
+ Installed MCP Servers . 
+ For Antigravity CLI: Open the /mcp panel to view your
+configured MCP servers. Verified and authenticated servers display
+ Authed next to their names inside the interactive TUI panel.
+You can select any server under the dashboard view to inspect its
+status and list all of its available tools. 
+ The remote MCP servers are ready to use in Antigravity. 
+ Claude To use the Google Workspace remote MCP servers with Claude.ai or Claude Desktop, you must have the
+Claude Enterprise, Pro, Max, or Team plan. 
+ To add the Google Workspace remote MCP servers to Claude, configure a
+custom connector with an OAuth client ID and secret. 
+ Create an OAuth 2.0 client ID and secret: 
+ In the Google Cloud console, go to Google Auth Platform > 
+ Clients > 
+ Create Client 
+ Go to Create Client 
+ Select Web application as the application type. 
+ Enter a Name . 
+ In the Authorized redirect URIs section, click + Add URI , and then
+add https://claude.ai/api/mcp/auth_callback in the URIs field. 
+ Click Create and copy your Client ID and Client Secret . 
+ Configure the MCP server in Claude: 
+ In Claude.ai or Claude Desktop, go to Settings (or Admin settings ) > Connectors . 
+ Click Add custom connector . 
+ Enter the connection details for the Google Workspace product you want to add:
+ Server name : A name for the server, like Gmail . 
+ Remote MCP server URL : The URL for the Google Workspace product, such as one of the following:
+ Gmail: https://gmailmcp.googleapis.com/mcp/v1 
+ Google Drive: https://drivemcp.googleapis.com/mcp/v1 
+ Google Docs: https://docsmcp.googleapis.com/mcp/v1 
+ Google Sheets: https://sheetsmcp.googleapis.com/mcp/v1 
+ Google Slides: https://slidesmcp.googleapis.com/mcp/v1 
+ Google Calendar: https://calendarmcp.googleapis.com/mcp/v1 
+ Google Chat: https://chatmcp.googleapis.com/mcp/v1 
+ People API: https://people.googleapis.com/mcp/v1 
+ In Advanced settings , enter your OAuth client ID and OAuth client secret . 
+ Click Add . 
+ Repeat these steps for each Google Workspace product you want to add. 
+ Others Many AI applications have ways to connect to a remote MCP server. You typically
+need to enter details about the server, like its name, endpoints, transport
+protocol, and authentication method. For the Google Workspace remote MCP
+servers, enter the following: 
+ Server name : googleworkspace 
+ Servers : Each Google Workspace product has its own server URL: 
+ Gmail: https://gmailmcp.googleapis.com/mcp/v1 
+ Google Drive: https://drivemcp.googleapis.com/mcp/v1 
+ Google Docs: https://docsmcp.googleapis.com/mcp/v1 
+ Google Sheets: https://sheetsmcp.googleapis.com/mcp/v1 
+ Google Slides: https://slidesmcp.googleapis.com/mcp/v1 
+ Google Calendar: https://calendarmcp.googleapis.com/mcp/v1 
+ Google Chat: https://chatmcp.googleapis.com/mcp/v1 
+ People API: https://people.googleapis.com/mcp/v1 
+ Transport : Streamable HTTP 
+ Authentication : The Google Workspace remote MCP server
+uses OAuth 2.0. For details, see
+ Learn about authentication and authorization . 
+ For more details on connecting different types of clients, see
+ Configure MCP in an AI application . 
+ Test the Google Workspace MCP servers 
+ After you configure the MCP client, you can verify the connection by
+running some test prompts. 
+ Try asking your MCP client the following questions: 
+ "What did Ariel say in her last email about our marketing plan?" 
+ The client filters for emails from Ariel using gmail.search_threads ,
+retrieves the latest thread's content with gmail.get_thread , and then
+summarizes it for you. 
+ "Draft an email to ariel@example.com saying that I approve the marketing plan." 
+ The client uses gmail.create_draft to create an email in your drafts
+folder, allowing you to review and send it from Gmail. 
+ "Summarize the file Marketing Plan." 
+ The client calls drive.search_files to locate "Marketing Plan", then uses
+ drive.read_file_content to retrieve and summarize its content. 
+ "Show me the structural contents of Google Doc Meeting Notes." 
+ The client fetches the document structure and contents using docs.read_doc . 
+ "Read sheet Sheet1 from Google Sheet Quarterly Sales." 
+ The client fetches grid values using sheets.get_values . 
+ "Show me the verbalized layout of Google Slides presentation Product Overview." 
+ The client fetches presentation visual layout structures using slides.read_presentation . 
+ "When is my next meeting with Ariel?" 
+ The client checks your schedule using calendar.list_events and details
+your next meeting with Ariel. 
+ "According to my Google Profile, what's my name?" 
+ The client uses people.get_user_profile to retrieve your
+Google Workspace profile information. 
+ If the tools execute successfully and you receive relevant responses, your
+Google Workspace MCP servers are correctly configured. 
+ Troubleshooting 
+ If you encounter issues connecting to the MCP servers, you can check for errors in the OAuth logs.
+Ask your administrator to check the OAuth log events in the security investigation tool . 
+ Supported products 
+ The following Google Workspace products support Google Workspace MCP servers
+and offer the following tools: 
+ Gmail 
+ create_draft 
+ get_message 
+ get_thread 
+ label_message 
+ label_thread 
+ list_drafts 
+ list_labels 
+ search_threads 
+ unlabel_message 
+ unlabel_thread 
+ Google Drive 
+ copy_file 
+ create_file 
+ download_file_content 
+ get_file_metadata 
+ get_file_permissions 
+ list_recent_files 
+ read_file_content 
+ search_files 
+ Google Docs 
+ read_doc 
+ update_doc 
+ Google Sheets 
+ get_values 
+ get_spreadsheet 
+ update_spreadsheet 
+ update_values 
+ update_formulas 
+ insert_dimension 
+ Google Slides 
+ read_presentation 
+ update_presentation 
+ Google Calendar 
+ create_event 
+ delete_event 
+ get_event 
+ list_calendars 
+ list_events 
+ respond_to_event 
+ search_events 
+ suggest_time 
+ update_event 
+ Google Chat 
+ search_conversations 
+ list_messages 
+ search_messages 
+ send_message 
+ mark_as_read 
+ mark_as_unread 
+ list_memberships 
+ People API 
+ get_user_profile 
+ search_contacts 
+ search_directory_people 
+ Important security consideration: Indirect prompt injection 
+ When you expose a language model to untrusted data, there is a risk of an
+ indirect prompt injection attack .
+Because MCP clients like Google Antigravity have access to
+powerful tools and APIs through the Google Workspace MCP servers, they can
+read, modify, and delete data in your Google Account. 
+ To mitigate these risks, follow these best practices: 
+ Only use trusted tools. Never connect Google Workspace MCP servers to
+untrusted or unverified applications. 
+ Be cautious with untrusted inputs. Avoid asking your MCP client to
+process emails, documents, or other resources from unverified sources. These
+inputs may contain hidden instructions that can hijack your session,
+allowing an attacker to modify, steal, or delete your data. 
+ Review all actions. Always carefully review the actions taken by your AI
+client on your behalf to ensure they are correct and align with your
+intentions. 
+ 

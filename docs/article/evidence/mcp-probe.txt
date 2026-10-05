@@ -1,0 +1,37 @@
+# ./mcp_probe.sh (no credentials), 2026-10-05T00:36:41Z
+server    2026-07-28  legacy init  tools
+gmail     yes         2025-11-25   23
+drive     yes         2025-11-25   8
+docs      yes         2025-11-25   2
+sheets    yes         2025-11-25   6
+slides    yes         2025-11-25   4
+calendar  yes         2025-11-25   9
+chat      yes         2025-11-25   4
+people    no          2025-11-25   3
+
+7 of 8 servers advertise 2026-07-28; 59 tools in total.
+
+[gmail] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[gmail] tools: create_draft, list_drafts, get_draft, get_thread, get_message, search_threads, label_thread, unlabel_thread, apply_sensitive_thread_label, trash_thread, untrash_thread, mark_thread_spam, unmark_thread_spam, list_labels, label_message, update_message_labels, unlabel_message, apply_sensitive_message_label, trash_message, untrash_message, mark_message_spam, unmark_message_spam, create_label
+[gmail] resource scopes: 11
+[drive] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[drive] tools: copy_file, create_file, download_file_content, get_file_metadata, get_file_permissions, list_recent_files, read_file_content, search_files
+[drive] resource scopes: 3
+[docs] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[docs] tools: read_doc, update_doc
+[docs] resource scopes: 4
+[sheets] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[sheets] tools: get_values, get_spreadsheet, update_spreadsheet, update_values, update_formulas, insert_dimension
+[sheets] resource scopes: 4
+[slides] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[slides] tools: read_presentation, read_slide_page, read_slide_page_thumbnail, update_presentation
+[slides] resource scopes: 5
+[calendar] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[calendar] tools: list_events, get_event, list_calendars, suggest_time, create_event, update_event, delete_event, respond_to_event, search_events
+[calendar] resource scopes: 12
+[chat] versions: 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28
+[chat] tools: list_messages, search_messages, search_conversations, send_message
+[chat] resource scopes: 9
+[people] versions: -
+[people] tools: search_directory_people, search_contacts, get_user_profile
+[people] resource scopes: 3

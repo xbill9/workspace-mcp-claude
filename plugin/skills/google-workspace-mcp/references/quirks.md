@@ -41,9 +41,11 @@ about it. The two sign-in limits with lasting impact have their own page,
 
 ## 2. Workspace MCP servers
 
-- **Tool lists answer without a token.** Seven servers return `tools/list`
-  unauthenticated; People asks for authentication. This is why Claude Code
-  shows `✔ Connected` for servers that are not signed in.
+- **Tool lists answer without a token.** All eight servers return
+  `tools/list` unauthenticated (`mcp_probe.sh`), and seven accept Claude
+  Code's connection without one, which is why Claude Code shows `✔ Connected`
+  for servers that are not signed in. People asks Claude Code for a sign-in
+  and shows `! Needs authentication`.
 - **Spec 2026-07-28 needs the `Mcp-Method` header.** `server/discover`
   without `Mcp-Method: server/discover` returns `-32602 Invalid params`. With
   it, seven servers list 2026-07-28; People returns `Method not supported`.

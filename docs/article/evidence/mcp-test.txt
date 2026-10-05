@@ -1,0 +1,15 @@
+# ./mcp_test.sh, 2026-10-05T00:36:56Z
+Testing: gmail drive docs sheets slides calendar chat people
+
+server    result            ok  err  tools
+gmail     PASS               1    0  list_labels
+drive     PASS               4    0  list_recent_files, search_files
+docs      PASS               1    0  read_doc
+sheets    PASS               1    0  get_spreadsheet
+slides    PASS               1    0  read_presentation
+calendar  PASS               1    0  list_calendars
+chat      PASS               1    0  search_conversations
+people    PASS               1    0  get_user_profile
+
+8 of 8 servers passed.
+exit=0

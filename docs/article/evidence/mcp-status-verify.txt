@@ -1,0 +1,13 @@
+# ./mcp_status.sh --verify, 2026-10-05T00:36:45Z
+server    registered  token    min left  refresh
+gmail     yes         valid          50  no
+drive     yes         valid          51  no
+docs      yes         valid          52  no
+sheets    yes         valid          53  no
+slides    yes         valid          54  no
+calendar  yes         valid          54  no
+chat      yes         valid          55  no
+people    yes         valid          49  no
+
+8 of 8 servers hold a token Google accepts.
+Tokens without refresh expire after about an hour; sign in again with /mcp or mcp_login.sh when they do.

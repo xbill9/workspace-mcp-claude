@@ -1,0 +1,98 @@
+# Sign-in order and token revocation, project comglitn, one Web application
+# OAuth client shared by all eight servers, Claude Code 2.1.289.
+# Transcribed verbatim from terminal output of the 2026-10-04/05 session
+# (UTC 2026-10-04 23:30 to 2026-10-05 00:36). Token values never printed.
+
+## Run A: first sign-in for all eight, order gmail drive docs sheets slides calendar chat people
+$ ./mcp_test.sh
+server    result            ok  err  tools
+gmail     PASS               1    0  list_labels
+drive     PASS               4    0  list_recent_files, search_files
+docs      PASS               1    0  read_doc
+sheets    PASS               1    0  get_spreadsheet
+slides    PASS               1    0  read_presentation
+calendar  PASS               1    0  list_calendars
+chat      PASS               1    0  search_conversations
+people    PASS               1    0  get_user_profile
+
+8 of 8 servers passed.
+
+## Run B: People signed in again (Google showed "Sign in to Workspace MCP Servers" + Continue)
+# callback scope: profile directory.readonly userinfo.profile contacts.readonly
+# Google tokeninfo, per stored token:
+gmail     INVALID (400)
+drive     INVALID (400)
+docs      INVALID (400)
+sheets    INVALID (400)
+slides    INVALID (400)
+calendar  INVALID (400)
+chat      INVALID (400)
+people    valid   expires_in=3156s scopes=4
+
+$ ./mcp_status.sh --verify
+server    registered  token    min left  refresh
+gmail     yes         revoked        28  no
+drive     yes         revoked        29  no
+docs      yes         revoked        30  no
+sheets    yes         revoked        30  no
+slides    yes         revoked        31  no
+calendar  yes         revoked        31  no
+chat      yes         revoked        32  no
+people    yes         valid          48  no
+
+1 of 8 servers hold a token Google accepts.
+7 token(s) were revoked before expiry; sign those servers in again.
+
+# Claude Code debug log (~/.claude/debug/<session>.txt) for the same state:
+[DEBUG] MCP server "slides": Connection established with capabilities: {...,"protocolEra":"modern","negotiatedProtocolVersion":"2026-07-28"}
+[DEBUG] MCP server "slides": Connection error: Unauthorized
+[ERROR] MCP server "slides" Failed to fetch tools: Unauthorized
+[DEBUG] MCP server "slides": Redirection handling is disabled, skipping redirect
+# mcp tools at init by server: {'docs': 2, 'people': 3, 'workspace-developer': 2, ...}
+
+## Run C: all eight again, order gmail drive docs sheets slides calendar chat people
+# after gmail, drive:
+gmail     yes         valid          59  no
+drive     yes         valid          60  no
+# after docs:
+gmail     yes         valid          59  no
+drive     yes         valid          59  no
+docs      yes         valid          60  no
+# after people (Continue step shown again):
+gmail     yes         revoked        55  no
+drive     yes         revoked        56  no
+docs      yes         revoked        57  no
+sheets    yes         revoked        57  no
+slides    yes         revoked        58  no
+calendar  yes         revoked        58  no
+chat      yes         revoked        59  no
+people    yes         valid          60  no
+
+1 of 8 servers hold a token Google accepts.
+7 token(s) were revoked before expiry; sign those servers in again.
+
+## Run D: people first, then gmail drive docs sheets slides calendar chat
+# after gmail:
+gmail     yes         valid          60  no
+people    yes         valid          59  no
+# after chat:
+gmail     yes         valid          55  no
+drive     yes         valid          56  no
+docs      yes         valid          57  no
+sheets    yes         valid          58  no
+slides    yes         valid          59  no
+calendar  yes         valid          59  no
+chat      yes         valid          60  no
+people    yes         valid          54  no
+
+8 of 8 servers hold a token Google accepts.
+# followed by ./mcp_test.sh: 8 of 8 servers passed (see mcp-test.txt)
+
+## Stored credential fields per Workspace server (names only)
+accessToken, clientId, clientSecret, discoveryState, expiresAt, issuer,
+redirectUri, scope, serverName, serverUrl
+# no refreshToken on any of the eight
+
+## Authorization URL built by Claude Code (gmail; ids redacted)
+https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=<id>&code_challenge=<…>&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A8765%2Fcallback&state=<…>&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.compose&resource=https%3A%2F%2Fgmailmcp.googleapis.com%2Fmcp%2Fv1
+# no access_type parameter

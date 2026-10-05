@@ -1,0 +1,28 @@
+# ./bootstrap.sh --no-apis --no-login, run in ~/workspace-mcp-claude on 2026-10-04
+# with the downloaded client JSON in ~/Downloads. Client ID shortened by the
+# script itself; project number replaced with <project-number> here.
+Installing OAuth client from /home/xbill/Downloads/client_secret_2_<project-number>-<client>.apps.googleusercontent.com.json
+Saved client <project-number>-… to ~/client_id.txt and ~/client_secret.txt
+Adding Workspace MCP servers to Claude Code (scope: local)
+Redirect URI required on the OAuth client: http://localhost:8765/callback
+
+gmail: https://gmailmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+drive: https://drivemcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+docs: https://docsmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+sheets: https://sheetsmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+slides: https://slidesmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+calendar: https://calendarmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+chat: https://chatmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+people: https://people.googleapis.com/mcp/v1 (HTTP) - ! Needs authentication
+workspace-developer: https://workspace-developer.goog/mcp (HTTP) - ✔ Connected
+
+# ./bootstrap.sh (with the API step), run by the user the same day:
+Updated property [core/project].
+Enabling Workspace APIs and MCP services on comglitn
+Operation "operations/acat.p2-<project-number>-d46329d0-40b5-4232-a430-c43e10731dc2" finished successfully.
+
+# Gmail protected resource metadata (unauthenticated GET), scopes_supported:
+# https://gmailmcp.googleapis.com/.well-known/oauth-protected-resource/mcp/v1
+https://mail.google.com/ gmail.compose gmail.drafts gmail.drafts.create
+gmail.drafts.readonly gmail.labels gmail.metadata gmail.modify gmail.readonly
+gmail.send gmail.settings.basic   (11 scopes)

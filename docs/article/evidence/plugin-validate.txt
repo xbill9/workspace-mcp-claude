@@ -1,0 +1,10 @@
+# claude plugin validate, 2026-10-05T00:36:50Z
+Validating marketplace manifest: /home/xbill/workspace-mcp-claude/.claude-plugin/marketplace.json
+
+✔ Validation passed
+Validating plugin manifest: /home/xbill/workspace-mcp-claude/plugin/.claude-plugin/plugin.json
+
+✔ Validation passed
+Validating components in: /home/xbill/workspace-mcp-claude/plugin/skills
+
+✔ Validation passed
