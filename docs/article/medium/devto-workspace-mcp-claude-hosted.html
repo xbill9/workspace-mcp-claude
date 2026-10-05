@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>MCP Configuration for Google Workspace with Claude Code</title>
+  <meta name="description" content="Connect Claude Code to Google&#x27;s eight remote Workspace MCP servers (Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat and People), packaged as a Claude Code skill, with the two sign-in limits that decide how you use it." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step configuration guide for the
+Google Workspace remote MCP servers with Claude Code. The setup is
+packaged as a Claude Code skill and plugin, so Claude Code can enable
+the APIs, register the servers, sign in, and test all eight of them.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-cover.2ed35ff2.jpg" alt="MCP Configuration for Google Workspace with Claude Code" /></figure>
+<p><a
+href="https://github.com/xbill9/workspace-mcp-claude">https://github.com/xbill9/workspace-mcp-claude</a></p>
+<p><strong>All eight Workspace servers pass a read-only test from Claude
+Code. Two sign-in limits shape how you use them: each sign-in lasts
+about an hour, and signing People in again revokes every token issued
+before it, so People always goes first.</strong></p>
+<hr />
+<h4 id="didnt-you-already-do-this">Didn't You Already Do This?</h4>
+<p>Yes! The first two versions of this setup used Gemini CLI and
+Antigravity CLI:</p>
+<p><a
+href="https://medium.com/google-cloud/mcp-configuration-for-google-workspace-with-gemini-cli-ead9ebdc5903">MCP
+Configuration for Google Workspace with Gemini CLI</a></p>
+<p><a
+href="https://dev.to/gde/mcp-configuration-for-google-workspace-with-antigravity-cli-3f34">MCP
+Configuration for Google Workspace with Antigravity CLI</a></p>
+<p>This version moves the same Google Cloud project to Claude Code,
+brings in the three newer servers (Docs, Sheets and Slides) and Chat,
+which the earlier config files left out, and packages it all as a Claude
+Code skill.</p>
+<hr />
+<h4 id="what-is-this-project-trying-to-do">What is this project trying
+to Do?</h4>
+<p>Google hosts one remote MCP server per Workspace product. Getting
+Claude Code connected takes a Google Cloud project with the right APIs,
+an OAuth web client, a few console settings, the servers registered in
+Claude Code, and a browser sign-in per server.</p>
+<p>The repository turns that into scripts and a skill. The scripts do
+everything that has an API. The skill tells Claude Code how to check
+what is already done, run the scripts, walk through the console steps,
+and test the result.</p>
+<hr />
+<h4 id="what-is-google-workspace">What is Google Workspace?</h4>
+<p>Google Workspace is Google's subscription productivity suite: Gmail,
+Drive, Docs, Sheets, Slides, Calendar, Chat and Meet on a custom domain,
+with admin controls and shared storage.</p>
+<p><a href="https://workspace.google.com/">Google Workspace: Secure
+Online Productivity &amp; Collaboration Tools</a></p>
+<p>Workspace MCP support is in Developer Preview. Sign up here before
+starting:</p>
+<p><a href="https://developers.google.com/workspace/preview">Google
+Workspace Developer Preview Program</a></p>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>A Google Workspace account in the Developer Preview Program, with
+admin access to its Google Cloud project.</li>
+<li>The Google Cloud CLI (<code>gcloud</code>), signed in.</li>
+<li>Claude Code. This guide used version 2.1.289.</li>
+<li>Chrome on the same machine, for the OAuth sign-in pages.</li>
+<li>A clone of the repository:</li>
+</ul>
+<pre class="bash"><code>cd ~
+git clone https://github.com/xbill9/workspace-mcp-claude
+cd workspace-mcp-claude</code></pre>
+<hr />
+<h4 id="the-servers">The Servers</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-1.png"
+alt="Table: Server, URL, Tools" /></p>
+<p>A ninth server, <code>workspace-developer</code> at
+<code>https://workspace-developer.goog/mcp</code>, searches the
+Workspace developer docs and needs no sign-in. The tool counts come from
+<code>mcp_probe.sh</code>, shown later.</p>
+<hr />
+<h4 id="step-1--enable-the-apis">Step 1 — Enable the APIs</h4>
+<p>Each product needs its API and its MCP service. People serves MCP
+from <code>people.googleapis.com</code>, so the total is 15 services.
+<code>bootstrap.sh</code> enables them with gcloud:</p>
+<pre class="bash"><code>./bootstrap.sh
+Updated property [core/project].
+Enabling Workspace APIs and MCP services on comglitn
+Operation &quot;operations/acat.p2-&lt;project-number&gt;-d46329d0-40b5-4232-a430-c43e10731dc2&quot; finished successfully.</code></pre>
+<p>When gcloud cannot sign in from the current shell, one console URL
+enables all 15 at once:</p>
+<pre><code>https://console.cloud.google.com/flows/enableapi?apiid=gmail.googleapis.com,drive.googleapis.com,docs.googleapis.com,sheets.googleapis.com,slides.googleapis.com,calendar-json.googleapis.com,chat.googleapis.com,people.googleapis.com,gmailmcp.googleapis.com,drivemcp.googleapis.com,docsmcp.googleapis.com,sheetsmcp.googleapis.com,slidesmcp.googleapis.com,calendarmcp.googleapis.com,chatmcp.googleapis.com&amp;project=PROJECT_ID</code></pre>
+<hr />
+<h4 id="step-2--set-up-the-oauth-consent-screen">Step 2 — Set Up the
+OAuth Consent Screen</h4>
+<p>In the Google Cloud console, open <strong>Google Auth Platform →
+Branding</strong> and click <strong>Get Started</strong> if it is not
+configured. Name the app <code>Workspace MCP Servers</code>, pick
+<strong>Internal</strong> for the audience, and add a contact email.</p>
+<p>Then <strong>Data Access → Add or remove scopes → Manually add
+scopes</strong>, and paste the scopes for the servers you want. Prefix
+each with <code>https://www.googleapis.com/auth/</code>:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-2.png"
+alt="Table: Server, Scopes" /></p>
+<p>That is 21 distinct scopes. The sensitive-scopes table on the Data
+Access page shows 10 rows per page, so three of them land on page 2.</p>
+<hr />
+<h4 id="step-3--create-the-oauth-client">Step 3 — Create the OAuth
+Client</h4>
+<p><strong>Google Auth Platform → Clients → Create Client</strong>. Pick
+<strong>Web application</strong> and add two authorized redirect
+URIs:</p>
+<ul>
+<li><code>http://localhost:8765/callback</code> for Claude Code. The
+port matches <code>CALLBACK_PORT</code> in the scripts.</li>
+<li><code>https://claude.ai/api/mcp/auth_callback</code> for claude.ai
+and Claude Desktop custom connectors.</li>
+</ul>
+<p>Leave "This client will be used by an AI-powered agent" unticked.
+Google's guide leaves it off.</p>
+<hr />
+<h4 id="step-4--configure-the-chat-app">Step 4 — Configure the Chat
+App</h4>
+<p>The Chat server needs a Chat app in the project. Open <strong>Google
+Chat API → Manage → Configuration</strong> and set:</p>
+<ul>
+<li>App name <code>Chat MCP</code></li>
+<li>Avatar URL
+<code>https://developers.google.com/chat/images/quickstart-app-avatar.png</code></li>
+<li>Description <code>Chat MCP server</code></li>
+<li>Interactive features off</li>
+<li><strong>Log errors to Logging</strong> ticked</li>
+</ul>
+<p>Leave "Build this Chat app as a Workspace add-on" as it is. Clearing
+it cannot be undone.</p>
+<hr />
+<h4 id="step-5--download-the-client-secret">Step 5 — Download the Client
+Secret</h4>
+<p>The console shows a client secret once, when it is created. On a
+later visit the client page says viewing and downloading secrets is no
+longer available, and <strong>Add secret</strong> creates a new one with
+a download button.</p>
+<p>The download lands in <code>~/Downloads</code> as
+<code>client_secret_&lt;client-id&gt;.json</code> or
+<code>client_secret_&lt;n&gt;_&lt;client-id&gt;.json</code>.
+<code>bootstrap.sh</code> picks up the newest one.</p>
+<hr />
+<h4 id="step-6--register-the-servers">Step 6 — Register the Servers</h4>
+<p><code>bootstrap.sh</code> installs the client from the downloaded
+JSON into <code>~/client_id.txt</code> and
+<code>~/client_secret.txt</code> (mode 600, never printed), then
+registers the servers with <code>claude mcp add-json</code>:</p>
+<pre class="bash"><code>./bootstrap.sh --no-apis --no-login
+Installing OAuth client from /home/xbill/Downloads/client_secret_2_&lt;project-number&gt;-&lt;client&gt;.apps.googleusercontent.com.json
+Saved client &lt;project-number&gt;-… to ~/client_id.txt and ~/client_secret.txt
+Adding Workspace MCP servers to Claude Code (scope: local)
+Redirect URI required on the OAuth client: http://localhost:8765/callback
+ 
+gmail: https://gmailmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+drive: https://drivemcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+docs: https://docsmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+sheets: https://sheetsmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+slides: https://slidesmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+calendar: https://calendarmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+chat: https://chatmcp.googleapis.com/mcp/v1 (HTTP) - ✔ Connected
+people: https://people.googleapis.com/mcp/v1 (HTTP) - ! Needs authentication
+workspace-developer: https://workspace-developer.goog/mcp (HTTP) - ✔ Connected</code></pre>
+<p>Each server gets its scopes pinned in <code>oauth.scopes</code> and
+the fixed callback port. Claude Code keeps the client secret in its own
+credential store, so nothing secret reaches <code>.mcp.json</code> or
+<code>~/.claude.json</code>.</p>
+<p><code>MCP_SCOPE</code> picks where the servers live:
+<code>user</code> (the default, every project), <code>local</code> (this
+directory only) or <code>project</code> (a shared
+<code>.mcp.json</code>).</p>
+<hr />
+<h4 id="step-7--sign-in-people-first">Step 7 — Sign In, People
+First</h4>
+<p>Sign in People before the other seven. A repeat People sign-in
+revokes every token issued before it, so the order matters every time
+you sign in again. The known issues below have the measurements.</p>
+<p>From your own terminal, in the repository directory:</p>
+<pre class="bash"><code>for s in people gmail drive docs sheets slides calendar chat; do claude mcp login $s; done</code></pre>
+<p>Or run <code>/mcp</code> inside Claude Code and pick
+<strong>Authenticate</strong> on each server, People first.</p>
+<p>Claude Code can also do it for you through the Chrome extension.
+<code>claude mcp login</code> needs a terminal, so
+<code>mcp_login.sh</code> runs it under a pseudo-terminal and prints the
+Google sign-in URL for Claude to open. <code>check</code> confirms once
+<strong>Allow</strong> has been clicked:</p>
+<pre class="bash"><code>./mcp_login.sh start people
+./mcp_login.sh check people
+https://accounts.google.com/o/oauth2/v2/auth?response_type=code&amp;client_id=&lt;id&gt;&amp;code_challenge=&lt;…&gt;&amp;code_challenge_method=S256&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8765%2Fcallback&amp;state=&lt;…&gt;&amp;scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdirectory.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcontacts.readonly&amp;resource=https%3A%2F%2Fpeople.googleapis.com%2Fmcp
+Signed in: people</code></pre>
+<p>The consent page is a grant of access to your mail, files and
+calendar. Check the permissions it lists against the scope table before
+clicking <strong>Allow</strong>.</p>
+<hr />
+<h4 id="step-8--check-the-sign-ins">Step 8 — Check the Sign-Ins</h4>
+<p><code>mcp_status.sh</code> lists each server's sign-in.
+<code>--verify</code> asks Google whether each token is still accepted,
+printing only valid or invalid:</p>
+<pre class="bash"><code>./mcp_status.sh --verify
+server    registered  token    min left  refresh
+gmail     yes         valid          50  no
+drive     yes         valid          51  no
+docs      yes         valid          52  no
+sheets    yes         valid          53  no
+slides    yes         valid          54  no
+calendar  yes         valid          54  no
+chat      yes         valid          55  no
+people    yes         valid          49  no
+ 
+8 of 8 servers hold a token Google accepts.
+Tokens without refresh expire after about an hour; sign in again with /mcp or mcp_login.sh when they do.</code></pre>
+<hr />
+<h4 id="step-9--test-every-server">Step 9 — Test Every Server</h4>
+<p><code>mcp_test.sh</code> runs one headless Claude Code session
+allowed only read-only tools, asks it to make one call per server, and
+grades each server from the tool results in the session's event stream.
+The model's own summary plays no part in the grade:</p>
+<pre class="bash"><code>./mcp_test.sh
+Testing: gmail drive docs sheets slides calendar chat people
+ 
+server    result            ok  err  tools
+gmail     PASS               1    0  list_labels
+drive     PASS               4    0  list_recent_files, search_files
+docs      PASS               1    0  read_doc
+sheets    PASS               1    0  get_spreadsheet
+slides    PASS               1    0  read_presentation
+calendar  PASS               1    0  list_calendars
+chat      PASS               1    0  search_conversations
+people    PASS               1    0  get_user_profile
+ 
+8 of 8 servers passed.
+exit=0</code></pre>
+<p>Drive shows four calls because its file search also finds the Doc,
+Sheet and Slides deck the next three checks read.
+<code>./mcp_test.sh slides</code> tests one server.</p>
+<hr />
+<h4 id="demo-step-1--ask-who-you-are">Demo Step 1 — Ask Who You Are</h4>
+<p>With the servers signed in, restart Claude Code in the repository
+directory so their tools load, and ask in plain language. Each demo
+below shows the prompt, the tools Claude Code called, and its answer.
+They come from <code>docs/article/run-demo.sh</code>, which runs a
+prompt through a headless session limited to the tools named after
+it.</p>
+<pre class="bash"><code>docs/article/run-demo.sh &quot;According to my Google profile, what is my name?&quot; &quot;mcp__people__get_user_profile&quot;
+&gt; According to my Google profile, what is my name?
+ 
+  ✅ mcp__people__get_user_profile
+ 
+Your Google profile name is **xbill work** (account xbill@glitnir.com).</code></pre>
+<hr />
+<h4 id="demo-step-2--summarize-your-latest-slides-deck">Demo Step 2 —
+Summarize Your Latest Slides Deck</h4>
+<p>Two servers work together here: Drive finds the newest presentation
+and Slides reads it.</p>
+<pre class="bash"><code>docs/article/run-demo.sh &quot;Find my most recent Google Slides presentation and give me its title, its slide count, and a three-bullet summary of what it covers.&quot; &quot;mcp__drive__search_files,mcp__slides__read_presentation&quot;
+&gt; Find my most recent Google Slides presentation and give me its title, its slide count, and a three-bullet summary of what it covers.
+ 
+  ✅ mcp__drive__search_files
+  ✅ mcp__drive__search_files
+  ✅ mcp__slides__read_presentation
+  ✅ Bash  echo &quot;30_37 12_0 30_0 30_8 30_13 30_19 30_25 30_43 30_51 30_57 30_63 30_68 30_73 30_78 30_83 30_92 30_88 30_97 30_102 30_107 30_113 30_118 30_136 30_142 30_162 5_0 30_153 30_158 32_0&quot; | wc -w
+ 
+Your most recent presentation is **Gemma4 Local**. It was last modified 2026-10-01 and you last opened it today. A Drive search for presentations modified after that date returned only this deck, so nothing newer exists.
+ 
+- **Title:** Gemma4 Local. The subtitle is &quot;Deploying next-generation open-weights models on local hardware environments.&quot;
+- **Slide count:** 29. I counted the slide IDs the Slides API returned with `wc`. Eight of the 29 slides have no text, so they&#39;re probably images or screenshots. The summary below comes from the text on the other slides.
+ 
+**What it covers:**
+- **The Gemma 4 model family.** It explains what Gemma is: open weights under the Apache license, and a separate model from Gemini. It then goes through the sizes: E2B and E4B for edge devices, the 26B A4B mixture-of-experts model, and the 31B dense model. It also includes two newer additions: the 12B mid-size model and quantization-aware training (QAT) to shrink the weights for low-end hardware.
+- **Ways to access and host it.** Options include AI Studio, Model Garden, local hosting (Ollama, vLLM, Docker, Edge Gallery on mobile) and Google Cloud. On Google Cloud that means TPUs (v5e, v5p, v6e, Ironwood), Cloud Run with L4 or 96 GB GPUs, VMs with attached GPUs, and GKE.
+- **Live demos and next steps.** The demos are a self-contained Tesla T4 VM on Google Cloud and a 4 GB laptop GPU running a QAT model, plus others in the repo across Cloud Run, GKE, TPU, AWS and Azure. The &quot;Future&quot; slide lists a vLLM QAT TPU pull request, a v5e deep dive, a v6e comparison, QAT and GGUF repacks, JAX on AWS Inf2, and a &quot;lite&quot; GKE demo.
+ 
+The deck opens with your speaker slides (bio, where to find you, recent articles). [link to the deck removed]</code></pre>
+<p>Claude counted the slides with <code>wc</code> over the IDs Slides
+returned, so the 29 comes from the tool output.</p>
+<hr />
+<h4 id="demo-step-3--count-unread-mail">Demo Step 3 — Count Unread
+Mail</h4>
+<p>Ask for the count Gmail's own search returns, so the number comes
+from Gmail:</p>
+<pre class="bash"><code>docs/article/run-demo.sh &quot;How many unread threads are in my Gmail inbox? Use the count the Gmail search returns rather than counting results yourself. Reply with the number and the query you used, and nothing about the individual emails.&quot; &quot;mcp__gmail__search_threads&quot;
+&gt; How many unread threads are in my Gmail inbox? Use the count the Gmail search returns rather than counting results yourself. Reply with the number and the query you used, and nothing about the individual emails.
+ 
+  ✅ mcp__gmail__search_threads
+ 
+Gmail&#39;s search returned **2** unread threads in your inbox.
+ 
+- **Query:** `in:inbox is:unread`
+- **Count:** `resultCountEstimate: &quot;2&quot;`. That&#39;s the number Gmail reported, and it&#39;s labelled an estimate.
+ 
+One of the two threads that came back no longer has the `UNREAD` label, so it was probably read recently and the search index hasn&#39;t caught up. The live number may be 1.</code></pre>
+<hr />
+<h4 id="demo-step-4--find-a-free-slot">Demo Step 4 — Find a Free
+Slot</h4>
+<p>Calendar's <code>suggest_time</code> searches for free time. The
+pinned Calendar scopes are read-only, so nothing can be booked:</p>
+<pre class="bash"><code>docs/article/run-demo.sh &quot;Suggest a free 30-minute slot for a meeting tomorrow afternoon on my primary calendar. Read only, do not create anything.&quot; &quot;mcp__calendar__list_calendars,mcp__calendar__suggest_time&quot;
+&gt; Suggest a free 30-minute slot for a meeting tomorrow afternoon on my primary calendar. Read only, do not create anything.
+ 
+  ✅ mcp__calendar__list_calendars
+  ✅ mcp__calendar__list_events
+  ✅ mcp__calendar__suggest_time
+ 
+I suggest **Monday, October 5, 2:00–2:30 PM Eastern**.
+ 
+Your primary calendar (xbill@glitnir.com, Eastern time) has one event tomorrow afternoon: **[TPU] Office Hours, 1:30–2:00 PM**. I asked Calendar&#39;s free-time search for openings between noon and 5 PM, and it returned two:
+ 
+- 🟢 **12:00–1:30 PM** (90 minutes)
+- 🟢 **2:00–5:00 PM** (3 hours)
+ 
+I picked 2:00 PM because it starts the longest open stretch, so the meeting can run over without a conflict. 12:00–12:30 is also free if you&#39;d rather go before the office hours.
+ 
+⚠️ You haven&#39;t responded to the TPU Office Hours invite yet, but Calendar still counts it as busy. If you skip it, 12:00–5:00 is open, apart from that one half-hour.
+ 
+This only read your calendar. I didn&#39;t create or change anything.</code></pre>
+<hr />
+<h4 id="which-mcp-version-do-the-servers-speak">Which MCP Version Do the
+Servers Speak?</h4>
+<p>The 2026-07-28 MCP specification makes the protocol stateless: a
+<code>server/discover</code> request replaces the
+<code>initialize</code> handshake. <code>mcp_probe.sh</code> checks each
+server with no credentials:</p>
+<pre class="bash"><code>./mcp_probe.sh
+server    2026-07-28  legacy init  tools
+gmail     yes         2025-11-25   23
+drive     yes         2025-11-25   8
+docs      yes         2025-11-25   2
+sheets    yes         2025-11-25   6
+slides    yes         2025-11-25   4
+calendar  yes         2025-11-25   9
+chat      yes         2025-11-25   4
+people    no          2025-11-25   3
+ 
+7 of 8 servers advertise 2026-07-28; 59 tools in total.</code></pre>
+<p>Seven servers advertise 2026-07-28 and Claude Code connects to those
+at that version. People answers only the 2025-11-25 handshake. All eight
+accept 2025-11-25, so any current MCP client connects.</p>
+<hr />
+<h4 id="using-the-skill--install-it">Using the Skill — Install It</h4>
+<p>The repository is also a Claude Code plugin marketplace. Install the
+<code>google-workspace-mcp</code> skill from inside Claude Code:</p>
+<pre><code>/plugin marketplace add xbill9/workspace-mcp-claude
+/plugin install google-workspace-mcp@workspace-mcp-claude</code></pre>
+<p>To try it from a clone without installing, start Claude Code with
+<code>claude --plugin-dir ~/workspace-mcp-claude/plugin</code>. The
+skill finds its scripts relative to its own directory either way. The
+manifests and the skill validate:</p>
+<pre class="bash"><code>claude plugin validate .
+claude plugin validate plugin
+claude plugin validate plugin/skills
+Validating marketplace manifest: /home/xbill/workspace-mcp-claude/.claude-plugin/marketplace.json
+ 
+✔ Validation passed
+Validating plugin manifest: /home/xbill/workspace-mcp-claude/plugin/.claude-plugin/plugin.json
+ 
+✔ Validation passed
+Validating components in: /home/xbill/workspace-mcp-claude/plugin/skills
+ 
+✔ Validation passed</code></pre>
+<hr />
+<h4 id="using-the-skill--what-to-ask">Using the Skill — What to Ask</h4>
+<p>The skill loads when a request is about connecting, signing in to,
+testing or fixing the Workspace servers, even when it never says
+"MCP":</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-3.png"
+alt="Table: Ask, What the skill does" /></p>
+<p>It always starts by finding out what is already done, because setup
+is usually half finished: a project with the APIs on, a client from an
+earlier tool, servers registered for another directory.</p>
+<hr />
+<h4 id="using-the-skill--ask-it-whether-everything-works">Using the
+Skill — Ask It Whether Everything Works</h4>
+<p>Asked from the home directory, with no setup files in sight, the
+skill loads, finds the servers registered for the repository directory,
+and checks them without changing anything. Trimmed:</p>
+<pre><code>&gt; Is my Google Workspace MCP setup for Claude Code working? Check it, but do not sign anything in or change anything.
+ 
+  ✅ Skill  google-workspace-mcp:google-workspace-mcp
+  ✅ Bash  &quot;/home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_status.sh&quot; --verify; …
+  ✅ Bash  claude mcp list 2&gt;&amp;1 | head -40; …
+  ✅ Bash  cd /home/xbill/workspace-mcp-claude &amp;&amp; &quot;/home/xbill/workspace-mcp-claude/plugin/skills/google-workspace-mcp/scripts/mcp_test.sh&quot;; …
+ 
+Yes, it works. All eight Workspace servers answered a real read-only call, and Google accepts all eight sign-ins. I didn&#39;t sign in or change anything.
+ 
+**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show &quot;Needs authentication&quot;, and you&#39;ll need to sign in again with `/mcp`. Sign in to People first, because a repeat People sign-in makes Google revoke the tokens of the other servers.
+ 
+- **The servers only exist in `~/workspace-mcp-claude`.** They&#39;re registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn&#39;t show them and their tools aren&#39;t available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.</code></pre>
+<p>Moving the servers to <code>user</code> scope drops their sign-ins
+and their client secret, because both are stored per server name. Remove
+the <code>local</code> copies, run
+<code>MCP_SCOPE=user ./claude_setup.sh</code> once more, then sign in to
+all eight again, People first.</p>
+<hr />
+<h4 id="using-the-skill--what-is-inside">Using the Skill — What Is
+Inside</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-4.png"
+alt="Table: File, Purpose" /></p>
+<p>The scripts at the repository root are wrappers around these, so a
+plain clone works the same way.</p>
+<hr />
+<h4 id="using-the-skill--what-it-leaves-to-you">Using the Skill — What
+It Leaves to You</h4>
+<p>The skill stops at three points, each for a reason:</p>
+<ul>
+<li><strong>The client secret.</strong> You download it; the skill never
+reads it. Auto mode blocks reading it, and it would otherwise land in
+the transcript.</li>
+<li><strong>The consent click.</strong> Allow grants access to your
+mail, files and calendar. The skill signs servers in through Chrome only
+when you ask it to, and checks the permissions on the page against the
+scope table first.</li>
+<li><strong>Writes to your data.</strong> Email, documents and chat
+messages that come back from the tools are treated as data, never as
+instructions, and sending, deleting or sharing waits for your yes.</li>
+</ul>
+<hr />
+<h4 id="known-issue-sign-ins-last-about-an-hour">Known Issue: Sign-Ins
+Last About an Hour</h4>
+<p>Google issues these sign-ins without a refresh token, so Claude Code
+cannot renew them. Every Workspace entry in Claude Code's credential
+store has an access token and an expiry one hour after sign-in, and no
+refresh token.</p>
+<p>The authorization URL Claude Code builds carries
+<code>response_type</code>, <code>client_id</code>, PKCE,
+<code>redirect_uri</code>, <code>state</code>, <code>scope</code> and
+<code>resource</code>. Google issues a refresh token only when the
+request also asks for offline access (<code>access_type=offline</code>),
+and Claude Code's <code>oauth</code> settings (<code>clientId</code>,
+<code>callbackPort</code>, <code>scopes</code>,
+<code>authServerMetadataUrl</code>) have no field that adds it.</p>
+<p>Plan for a fresh sign-in each working hour.
+<code>mcp_status.sh</code> shows the minutes left.</p>
+<hr />
+<h4 id="known-issue-a-repeat-people-sign-in-revokes-the-others">Known
+Issue: A Repeat People Sign-In Revokes the Others</h4>
+<p>Signing People in again makes Google revoke the token of every server
+signed in before it, while those tokens still have most of their hour
+left. Sign-ins for the other seven revoke nothing. Each row below was
+checked with Google's token-info endpoint:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-5.png"
+alt="Table: Sign-in order, Tokens Google accepts afterwards" /></p>
+<p>People's repeat sign-in shows one extra step: a "Sign in to Workspace
+MCP Servers" page with your name and profile picture, and a
+<code>profile</code> scope added to the grant. Why Google revokes the
+other tokens is unconfirmed.</p>
+<p>A revoked server is hard to spot. <code>claude mcp list</code> still
+shows it <code>✔ Connected</code>, the stored expiry still shows minutes
+left, and in a session its tools are simply missing. Claude Code's debug
+log has the reason:</p>
+<pre><code>[DEBUG] MCP server &quot;slides&quot;: Connection error: Unauthorized
+[ERROR] MCP server &quot;slides&quot; Failed to fetch tools: Unauthorized</code></pre>
+<p><code>mcp_status.sh --verify</code> reports such a token as
+<code>revoked</code>. <code>bootstrap.sh</code> and the skill sign
+People in first.</p>
+<hr />
+<h4 id="mag_right-tip--connected-means-the-server-answered">🔎 Tip: ✔
+Connected Means the Server Answered</h4>
+<p>All eight servers list their tools without any token, and seven of
+them accept Claude Code's connection without one too. So
+<code>claude mcp list</code> shows those seven <code>✔ Connected</code>
+before you sign in and after a token is revoked. People asks Claude Code
+for a sign-in and shows <code>! Needs authentication</code>.</p>
+<p>Use <code>mcp_status.sh --verify</code> for sign-in state and
+<code>mcp_test.sh</code> for working tools.</p>
+<hr />
+<h4 id="mag_right-tip-pin-the-scopes">🔎 Tip: Pin the Scopes</h4>
+<p>Each server publishes the scopes it accepts. Gmail's list has 11,
+starting with <code>https://mail.google.com/</code>, full mailbox
+access. Without pinned scopes, Claude Code requests what the server's
+metadata or a <code>401</code> response suggests.</p>
+<p><code>claude_setup.sh</code> pins the scopes from Google's guide for
+every server. Gmail exposes 23 tools against the 10 the guide lists, and
+the extra trash, spam and label-editing tools need scopes outside the
+pinned set. They fail with <code>insufficient_scope</code> until you
+widen that server's entry and sign it in again.</p>
+<hr />
+<h4 id="mag_right-tip-the-account-chooser-ignores-its-first-click">🔎
+Tip: The Account Chooser Ignores Its First Click</h4>
+<p>When Claude drives the sign-in through Chrome, Google's "Choose an
+account" page often stays put after the first click on the account.
+Click the account and press Enter, and repeat once if the chooser is
+still showing.</p>
+<p>Chat's consent page lists five permissions and puts
+<strong>Allow</strong> below the fold, so scroll first. The skill's
+<code>references/quirks.md</code> lists every quirk seen during
+setup.</p>
+<hr />
+<h4 id="mag_right-tip-keep-the-client-secret-out-of-the-transcript">🔎
+Tip: Keep the Client Secret Out of the Transcript</h4>
+<p>Claude Code's auto mode refuses to read the client secret from the
+console or from its downloaded file, and refuses to click <strong>Add
+secret</strong>. Allowing the tool in <code>/permissions</code> leaves
+that check in place.</p>
+<p>So the secret takes one human step: you download it, and
+<code>bootstrap.sh</code> copies it into
+<code>~/client_secret.txt</code> without printing it. Delete the
+downloaded JSON afterwards.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-6.png"
+alt="Table: Gemini CLI, Antigravity CLI, Claude Code" /></p>
+<p>claude.ai and Claude Desktop take the same eight URLs as custom
+connectors (<strong>Settings → Connectors → Add custom
+connector</strong>), with the OAuth client ID and secret under
+<strong>Advanced settings</strong> and
+<code>https://claude.ai/api/mcp/auth_callback</code> as the redirect
+URI.</p>
+<hr />
+<h4 id="so-which-one">So, Which One?</h4>
+<p>For terminal work in Claude Code, the
+<code>google-workspace-mcp</code> skill. It registers all eight servers
+with pinned scopes, keeps the secret out of config files, signs People
+in first, and proves the result with a read-only test.</p>
+<p>Plan around the hourly sign-in. <code>mcp_status.sh --verify</code>
+at the start of a session tells you which servers need it, and People
+first keeps one sign-in from undoing the others.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to connect Claude Code to Google's eight
+remote Workspace MCP servers and package the setup as a Claude Code
+skill. The key to the solution was scripting every step that has an API,
+documenting the console steps that do not, and grading the result from
+tool calls. The results were:</p>
+<ul>
+<li>🟢 <strong>8 of 8 servers pass</strong> a read-only test from a
+headless Claude Code session, graded from the tool results.</li>
+<li>🟢 <strong>59 tools</strong> across the eight servers; seven
+advertise the 2026-07-28 MCP specification and all eight accept
+2025-11-25.</li>
+<li>🟢 <strong>One command registers everything</strong> with pinned
+scopes, and the client secret stays out of every config file.</li>
+<li>🟢 <strong>Installable as a plugin</strong> from the repository,
+with manifests and skill that validate.</li>
+<li>⚠️ <strong>Sign-ins last about an hour</strong>, with no refresh
+token issued.</li>
+<li>❌ <strong>A repeat People sign-in revokes the other seven
+tokens</strong>; signing People in first avoids it.</li>
+</ul>
+<p>Scope: one Google Workspace account in the Developer Preview, one
+Google Cloud project with an Internal consent screen and one Web
+application OAuth client shared by all eight servers, Claude Code
+2.1.289 on Linux, checked on 2026-10-04 and 2026-10-05. The revocation
+was reproduced twice with Google's token-info endpoint; its cause on
+Google's side is unconfirmed. Separate OAuth clients per server and
+claude.ai connectors were not tested.</p>
+<p>The strategy for using MCP with Google Workspace from Claude Code was
+validated with an incremental step by step approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li><a
+href="https://github.com/xbill9/workspace-mcp-claude">workspace-mcp-claude
+| GitHub</a></li>
+<li><a
+href="https://developers.google.com/workspace/guides/configure-mcp-servers">Configure
+the Google Workspace MCP servers | Google for Developers</a></li>
+<li><a href="https://developers.google.com/workspace/preview">Google
+Workspace Developer Preview Program | Google for Developers</a></li>
+<li><a href="https://code.claude.com/docs/en/mcp">Connect Claude Code to
+tools via MCP | Claude Code Docs</a></li>
+<li><a href="https://blog.modelcontextprotocol.io/posts/2026-07-28/">The
+2026-07-28 MCP Specification | Model Context Protocol Blog</a></li>
+<li><a
+href="https://dev.to/gde/mcp-configuration-for-google-workspace-with-antigravity-cli-3f34">MCP
+Configuration for Google Workspace with Antigravity CLI |
+dev.to</a></li>
+<li><a
+href="https://medium.com/google-cloud/mcp-configuration-for-google-workspace-with-gemini-cli-ead9ebdc5903">MCP
+Configuration for Google Workspace with Gemini CLI | Medium</a></li>
+<li><a href="https://docs.cloud.google.com/mcp/known-issues">Google
+Cloud MCP known issues | Google Cloud Documentation</a></li>
+</ul>
+</body>
+</html>
