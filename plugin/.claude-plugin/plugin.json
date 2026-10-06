@@ -1,7 +1,7 @@
 {
   "name": "google-workspace-mcp",
   "description": "Connect Claude Code to Google's remote Workspace MCP servers (Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People): setup, sign-in and a read-only test.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": {
     "name": "xbill9",
     "url": "https://github.com/xbill9"

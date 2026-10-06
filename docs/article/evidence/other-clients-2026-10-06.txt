@@ -22,5 +22,8 @@ redirect_uri = https://antigravity.google/oauth-callback
 resource = https://gmailmcp.googleapis.com/mcp/v1
 response_type = code
 scope =  gmail.compose gmail.drafts gmail.drafts.create gmail.drafts.readonly gmail.labels gmail.metadata gmail.modify gmail.readonly gmail.send gmail.settings.basic
+# Correction (same day): the decoder above printed the last path segment of each
+# scope and so dropped https://mail.google.com/ (segment empty, hence the double
+# space). The URL requested 11 scopes; see other-clients-signin-2026-10-06.txt.
 # Google's answer to that URL (authError decoded):
 redirect_uri_mismatch

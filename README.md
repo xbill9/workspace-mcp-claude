@@ -157,7 +157,7 @@ Claude.ai and Claude Desktop (Pro, Max, Team or Enterprise) use custom connector
 
 ## Other MCP clients: Codex CLI and Antigravity CLI
 
-The servers work from other MCP clients too, with differences that matter: where each client keeps the client secret, which redirect URI it uses, which scopes it requests and whether it asks Google for a refresh token. Antigravity CLI sends `access_type=offline` and requests every scope a server lists; Codex CLI's request matches Claude Code's. Every client configured with the same OAuth client shares one Google grant, so a re-sign-in in one can sign the others out. Details and setup in [`plugin/skills/google-workspace-mcp/references/clients.md`](plugin/skills/google-workspace-mcp/references/clients.md).
+The servers work from other MCP clients too, with differences that matter: where each client keeps the client secret, which redirect URI it uses, which scopes it requests and whether it asks Google for a refresh token. Antigravity CLI sends `access_type=offline` and keeps a refresh token, so its sign-ins renew, but it requests every scope a server lists (for Gmail, full mailbox access including permanent delete) and stores the refresh token and client secret in a mode-644 file. Codex CLI's request matches Claude Code's, and its sign-ins also last an hour. Every client configured with the same OAuth client shares one Google grant: revoking one Codex token signed Antigravity out too. Details and setup in [`plugin/skills/google-workspace-mcp/references/clients.md`](plugin/skills/google-workspace-mcp/references/clients.md).
 
 ## Security
 

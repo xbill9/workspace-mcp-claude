@@ -341,10 +341,42 @@ Six ways to live with it, from no moving parts to the most.
 
 #### How Do Other Clients Ask?
 
-The same Gmail server and OAuth client, set up in two other MCP clients, with each authorization URL captured before sign-in:
+The same Gmail server and OAuth client, signed in from two other MCP clients and called with `list_labels`. Antigravity's callback, `https://antigravity.google/oauth-callback`, was added to the OAuth client for the test:
 
-| | Claude Code 2.1.291 | Codex CLI 0.158.0 | Antigravity CLI 1.2.12 |
+| | Claude Code 2.1.291 | Codex CLI 0.158.0 | Antigravity CLI 1.3.0 |
 | :--- | :--- | :--- | :--- |
+| `access_type=offline` | ❌ | ❌ | ✅ with `prompt=consent` |
+| Refresh token stored | ❌ | ❌ `refresh_token: null` | ✅ |
+| Renews without a browser | ❌ | ❌ | ✅ |
+| Scopes | pinned per server | passed at login | every scope the server lists: 11 for Gmail, including `https://mail.google.com/` |
+| Redirect URI | `localhost:8765/callback` | `callback_url` setting | `antigravity.google/oauth-callback` |
+| Client secret kept in | Claude Code's credential store | `config.toml` | `mcp_config.json`, and again beside the tokens |
+| Tokens kept in | Claude Code's credential store | desktop keyring, or a mode 600 file | `mcp_oauth_tokens.json`, mode 644 |
+| `list_labels` | 38 | 38 | 38 |
+
+Codex sends the same request as Claude Code and stores no refresh token, so its sign-ins last an hour too.
+
+Antigravity, Google's own client, sends Google's parameter and gets the refresh token. With its stored expiry set in the past, the next call fetched a new access token with no browser. The price is the scope. Antigravity asks for every scope in Gmail's metadata, and Google's consent page opens with:
+
+```text
+Workspace MCP Servers wants additional access to your Google Account
+Read, compose, send, and permanently delete all your email from Gmail
+```
+
+The page names the OAuth client's app, not Antigravity, and calls it "additional access" because Claude Code's read and compose grant is already there. Antigravity then keeps the refresh token for that full-mailbox grant in a file with mode 644, next to the client secret.
+
+One more test across all three: revoking one Codex access token.
+
+```text
+Codex access token      : rejected (400)
+Antigravity access token: rejected (400)
+Antigravity refresh     : HTTP 400 invalid_grant: Token has been expired or revoked.
+helper (probe) refresh  : HTTP 400 invalid_grant: Token has been expired or revoked.
+```
+
+Every client on one OAuth client shares one grant. A Claude Code re-sign-in, which revokes the old token, signs Antigravity and Codex out as well, refresh token included. A separate OAuth client per tool keeps both the grants and the scopes apart.
+
+--- | :--- | :--- | :--- |
 | `access_type=offline` | ❌ | ❌ | ✅ with `prompt=consent` |
 | Scopes | pinned per server | passed at login | every scope the server lists, 10 for Gmail |
 | Redirect URI | `localhost:8765/callback` | `callback_url` setting | `https://antigravity.google/oauth-callback` |
@@ -386,9 +418,12 @@ The goal of this article was to find why Claude Code needs a fresh Google sign-i
 - 🟢 **`headersHelper` with your own refresh token works**: Claude Code listed Gmail labels through it with no browser, as long as the helper refreshes on every call.
 - 🟢 **A local proxy also works** and repairs a refused token inside the request, with a log of every call.
 - ⚠️ **gcloud needs its own Desktop client** and the `cloud-platform` scope before it will hold Workspace scopes.
+- 🟢 **Antigravity CLI gets a refresh token** by sending `access_type=offline`, and renews without a browser; Codex CLI, like Claude Code, does not.
+- ❌ **Antigravity asks for full mailbox access** (`https://mail.google.com/`) and keeps the refresh token in a mode 644 file with the client secret.
+- ❌ **Clients on one OAuth client share one grant**: revoking a Codex token signed Antigravity out, refresh token included.
 - ⚠️ **Every route past the hour stores a long-lived credential**: a refresh token, a gcloud credential or a service account key, held by you instead of Claude Code.
 
-Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 for Steps 1 to 6 and 2.1.292 for Steps 7 and 8, gcloud 587.0.0, on Linux, checked on 2026-10-06. Options 2 to 4 were run against the Gmail server only, one session each, with Claude Code configured with that one server. Claude Code's sign-in behaviour comes from its sign-in URL, the function quoted in Step 3 and its MCP documentation. Option 3 stopped at Google's redirect check for want of a Desktop client, option 5 was not run, renewal after a full hour inside one session was not timed, and other MCP clients were not tested.
+Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 for Steps 1 to 6 and 2.1.292 for Steps 7 and 8, gcloud 587.0.0, on Linux, checked on 2026-10-06. Options 2 to 4 were run against the Gmail server only, one session each, with Claude Code configured with that one server. Claude Code's sign-in behaviour comes from its sign-in URL, the function quoted in Step 3 and its MCP documentation. Option 3 stopped at Google's redirect check for want of a Desktop client, option 5 was not run, renewal after a full hour inside one session was not timed. Codex CLI 0.158.0 and Antigravity CLI 1.3.0 were signed in once each on the Gmail server with the same OAuth client; Antigravity's renewal was tested by setting its stored expiry in the past. Gemini CLI was not re-tested here.
 
 The strategy for diagnosing the hourly sign-in for Google Workspace MCP from Claude Code was validated with an incremental step by step approach.
 

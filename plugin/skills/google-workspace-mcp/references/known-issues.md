@@ -117,9 +117,12 @@ These keep a refresh token outside Claude Code; see
 ## Other MCP clients share the grant
 
 Codex CLI, Antigravity CLI and Gemini CLI configured with this same OAuth
-client are, to Google, the same app, so the revocation in §2 reaches them too.
-Codex sends the same authorization request as Claude Code and should hit the
-same hour; Antigravity sends `access_type=offline`. See `clients.md`.
+client are, to Google, the same app, and the revocation in §2 reaches them
+too: on 2026-10-06, revoking one Codex access token also invalidated
+Antigravity's access and refresh tokens. Codex sends the same authorization
+request as Claude Code and its sign-ins last an hour; Antigravity sends
+`access_type=offline`, keeps a refresh token and renews, but requests full
+Gmail access (`https://mail.google.com/`). See `clients.md`.
 
 ## Options not yet tested
 
