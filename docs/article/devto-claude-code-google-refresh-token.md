@@ -1,12 +1,12 @@
 ---
 title: "Debugging Claude Code and Google MCP Quirks"
 published: false
-description: "Claude Code asks for a refresh token the MCP way, with the offline_access scope. Google issues refresh tokens only through access_type=offline. A step by step check of both sides, with the commands and their output."
+description: "Claude Code asks for a refresh token the MCP way, with the offline_access scope; Google issues refresh tokens only through access_type=offline. A step by step check of both sides, and the alternatives, from signing in hourly to scripting the token yourself."
 tags: claudecode, mcp, googleworkspace, oauth
 cover_image: https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/devto-cover-refresh.5fed71bd.jpg
 ---
 
-This article provides a step by step investigation of why Claude Code needs a fresh Google sign-in every hour for the Google Workspace remote MCP servers. Each step is a command and its output, from the stored token to the request Claude Code sends to what Google's authorization server accepts.
+This article provides a step by step investigation of why Claude Code needs a fresh Google sign-in every hour for the Google Workspace remote MCP servers. Each step is a command and its output, from the stored token to the request Claude Code sends to what Google's authorization server accepts, followed by the alternatives and what each one costs to run.
 
 https://github.com/xbill9/workspace-mcp-claude
 
@@ -197,11 +197,55 @@ One parameter is the whole difference between an hourly sign-in and one that ren
 
 ---
 
+#### Step 7 — Script It Yourself with headersHelper
+
+Claude Code has a second way to authenticate an MCP server. `headersHelper` names a command whose output becomes the request headers:
+
+[Connect Claude Code to tools via MCP | Claude Code Docs](https://code.claude.com/docs/en/mcp)
+
+Per those docs, the command prints a JSON object such as `{"Authorization": "Bearer …"}`. Claude Code runs it at connect and on reconnect, runs it again and retries once when a tool call returns `401` or `403`, does not cache its output, and gives it 10 seconds. When the output carries an `Authorization` header, Claude Code skips its own OAuth for that server.
+
+So the refresh token from Step 6 can drive a server directly. `token_header.py` in the repository is the helper. It reads the server name from `CLAUDE_CODE_MCP_SERVER_NAME`, reuses the stored access token while it has more than five minutes left, and otherwise trades the refresh token for a new one.
+
+Sign each server in once with offline access (`oauth_probe.py` knows `gmail`, `drive` and `people`; add the others to its `SERVERS` table):
+
+```bash
+export PROBE_DIR=~/.cache/oauth-probe
+python3 oauth_probe.py signin gmail gmail access_type=offline prompt=consent
+```
+
+Then register the server with the helper in place of the `oauth` block:
+
+```json
+{
+  "type": "http",
+  "url": "https://gmailmcp.googleapis.com/mcp/v1",
+  "headersHelper": "PROBE_DIR=~/.cache/oauth-probe python3 -I ~/workspace-mcp-claude/docs/article/token_header.py"
+}
+```
+
+The moving parts, all of them yours:
+
+- **The OAuth client secret**, read from `~/client_secret.txt` on every refresh.
+- **A sign-in script** that adds `access_type=offline` and `prompt=consent`, run once per server.
+- **A token file** holding one refresh token per server, mode 600.
+- **The helper**, which must answer inside 10 seconds, including a call to Google's token endpoint.
+- **One config entry per server** with `headersHelper` and no `oauth` block.
+
+The tradeoffs:
+
+- **A refresh token on disk works until someone revokes it.** With an Internal consent screen it has no expiry of its own. Anything that can read the file, or run the helper, can read and draft your mail with nobody present. A keyring (`secret-tool` on Linux) is a better home than a file.
+- **Revocation still covers the whole grant.** The tokens share one OAuth client, so revoking any of them signs all of them out, the same as in the companion article.
+- **Failures look different.** A helper whose token Google rejects shows as a failed connection in `/mcp`, where an OAuth server shows "needs authentication".
+- **You maintain it.** Token handling is code you now own, on every machine you use.
+
+---
+
 #### 🔎 Tip: Leave offline_access Out of the Pinned Scopes
 
 Claude Code's `oauth.scopes` setting is the one place you could add `offline_access` yourself, and the function in Step 3 keeps it if it is there. Step 5 shows what Google does with it: every sign-in fails with `invalid_scope`.
 
-Claude Code's `oauth` settings (`clientId`, `callbackPort`, `scopes`, `authServerMetadataUrl`) have no field for an extra authorization parameter, so `access_type=offline` has no setting either.
+Claude Code's `oauth` settings (`clientId`, `callbackPort`, `scopes`, `authServerMetadataUrl`) have no field for an extra authorization parameter, so `access_type=offline` has no setting either. `authServerMetadataUrl` can point Claude Code at a metadata document of your own that lists `offline_access`, and Claude Code would then append it, which brings back the `invalid_scope` of Step 5.
 
 ---
 
@@ -226,6 +270,33 @@ Each side follows its own documentation, and the two routes never meet.
 
 ---
 
+#### What Are the Alternatives?
+
+Six ways to live with it, from no moving parts to the most.
+
+**1. Sign in every hour.** Sign all eight servers in together and check them with `mcp_status.sh --verify` at the start of a session. Nothing to build, and the longest-lived credential on the machine is a one-hour access token. The cost is a browser sign-in per server, every working hour.
+
+**2. headersHelper with your own refresh token.** Step 7. No browser after the first sign-in, and the helper renews in the middle of a session. The cost is a refresh token you store and guard, a script you maintain, and code that holds your client secret.
+
+**3. headersHelper with gcloud.** Let gcloud hold the refresh token: sign in once with `gcloud auth application-default login --client-id-file=… --scopes=…` listing every Workspace scope, and have the helper print `gcloud auth application-default print-access-token`. gcloud already renews tokens, so there is no token code to write. gcloud's help documents this route: scopes outside Google Cloud, such as Drive, need an OAuth client of your own passed with `--client-id-file`. The costs: one credential carries every Workspace scope you list, in gcloud's credential file next to your Google Cloud access; the Workspace admin's Google Cloud session length may decide how often gcloud asks you to sign in again; and which OAuth client type gcloud's sign-in accepts was not checked here.
+
+**4. A local proxy MCP server.** A small server on your machine holds the refresh token, adds the `Authorization` header and forwards each request to `*mcp.googleapis.com`; Claude Code connects to localhost. It gives the most control, such as logging every tool call or narrowing what each client can reach. It is also the most code: a server to keep running, Streamable HTTP to pass through, and the same stored refresh token as option 2.
+
+**5. A service account with domain-wide delegation.** A Workspace admin lets a service account act as users, and the helper mints tokens for your account with no user sign-in at all. The cost is a key file and a tenant-wide grant: that service account can act as anyone in the domain for the delegated scopes, which is a large grant for one developer's editor.
+
+**6. The fix upstream.** Google accepting `offline_access` and listing it in `scopes_supported`, or a general Claude Code setting for extra authorization parameters. Nothing to run or store, and Claude Code keeps the refresh token in its own credential store. The cost is waiting.
+
+| Option | Code you own | Browser sign-ins | Long-lived credential | Checked here |
+| :--- | :--- | :--- | :--- | :--- |
+| 1. Sign in hourly | none | every hour | none | ✅ |
+| 2. headersHelper + own token | helper + sign-in script | once per server | refresh token in a file | ⚠️ renewal only |
+| 3. headersHelper + gcloud | one-line helper | once, then per session length | gcloud's refresh token | ❌ |
+| 4. Local proxy | a server | once per server | refresh token | ❌ |
+| 5. Service account | helper | none | service account key | ❌ |
+| 6. Upstream fix | none | once | refresh token in Claude Code's store | n/a |
+
+---
+
 #### Where Does the Fix Belong?
 
 **Google's authorization server.** SEP-2207 puts the decision with the authorization server's metadata and tells MCP servers to stay out of it. If `accounts.google.com` accepted `offline_access` and listed it in `scopes_supported`, Claude Code's existing code would request it, with no change on Anthropic's side, and so would any other client that follows the MCP guidance.
@@ -236,9 +307,11 @@ Each side follows its own documentation, and the two routes never meet.
 
 #### So, Which One?
 
-Google supporting `offline_access` is the fix that follows the MCP specification, and it reaches every standards-based MCP client at once. A general authorization-parameter setting in Claude Code would also work and helps with other providers that have their own conventions.
+For most sessions, option 1: sign all eight in together and accept the hourly sign-in. It adds nothing to guard.
 
-Until one of them lands, plan for a fresh sign-in each working hour, and sign all eight servers in together.
+For long unattended sessions on your own machine, option 2, with the refresh token in a keyring and revoked when the work is done. It removes the hourly sign-in at the price of a credential that outlives the session.
+
+Options 3 to 5 trade a smaller script for a bigger credential, or a bigger build for more control. Pursue option 6 alongside whichever you pick: Google supporting `offline_access` is the fix that follows the MCP specification, and it reaches every standards-based MCP client at once.
 
 ---
 
@@ -251,8 +324,10 @@ The goal of this article was to find why Claude Code needs a fresh Google sign-i
 - ❌ **Google lists `offline_access` nowhere** and rejects it with `invalid_scope`, the same answer as for a made-up scope.
 - 🟢 **`access_type=offline` works**: the same sign-in with that parameter returns a refresh token that renews without a browser.
 - ⚠️ **Claude Code has no setting** for an extra authorization parameter, and pinning `offline_access` breaks every sign-in.
+- 🟢 **`headersHelper` can supply your own token**: Claude Code re-runs it on a `401`, so a helper holding a refresh token renews in the middle of a session.
+- ⚠️ **Every route past the hour stores a long-lived credential**: a refresh token, a gcloud credential or a service account key, held by you instead of Claude Code.
 
-Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 on Linux, checked on 2026-10-06. The refresh test used the Gmail server only. Claude Code's behaviour comes from its sign-in URL and the function quoted in Step 3; other MCP clients were not tested.
+Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 on Linux, checked on 2026-10-06. The refresh test used the Gmail server only. Claude Code's behaviour comes from its sign-in URL, the function quoted in Step 3 and its MCP documentation. For option 2, the refresh token's renewal was measured; Claude Code connecting through `token_header.py` was not run. Options 3 to 5 were not run, and other MCP clients were not tested.
 
 The strategy for diagnosing the hourly sign-in for Google Workspace MCP from Claude Code was validated with an incremental step by step approach.
 
@@ -269,3 +344,4 @@ The strategy for diagnosing the hourly sign-in for Google Workspace MCP from Cla
 * [Using OAuth 2.0 for Web Server Applications | Google for Developers](https://developers.google.com/identity/protocols/oauth2/web-server)
 * [OpenID Connect | Google for Developers](https://developers.google.com/identity/openid-connect/openid-connect)
 * [Google's OpenID configuration | accounts.google.com](https://accounts.google.com/.well-known/openid-configuration)
+* [Connect Claude Code to tools via MCP | Claude Code Docs](https://code.claude.com/docs/en/mcp)
