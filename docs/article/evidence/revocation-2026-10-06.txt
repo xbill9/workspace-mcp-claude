@@ -53,6 +53,7 @@ revoke B-drive: HTTP 200
  "label": "B-drive",	 "valid": false,
 
 ## 5. Through Claude Code: mcp_login.sh gmail and drive, then mcp_status.sh --verify
+server    registered  token    min left  refresh
 gmail     yes         valid          59  no
 drive     yes         valid          60  no
 # then: mcp_login.sh start drive (sign-in started, not finished), 5 s later:

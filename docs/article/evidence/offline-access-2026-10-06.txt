@@ -1,0 +1,27 @@
+# offline_access and Google's authorization server, checked 2026-10-06 14:55-0400.
+# Commands and output verbatim. No sign-in performed; no token issued.
+
+$ curl -s https://accounts.google.com/.well-known/openid-configuration | jq .scopes_supported
+["openid", "email", "profile"]
+
+$ curl -s https://accounts.google.com/.well-known/oauth-authorization-server | jq .scopes_supported
+null
+
+$ curl -s https://accounts.google.com/.well-known/oauth-authorization-server | jq .grant_types_supported
+["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:device_code", "urn:ietf:params:oauth:grant-type:jwt-bearer"]
+
+$ curl -s https://gmailmcp.googleapis.com/.well-known/oauth-protected-resource/mcp/v1 | jq "{resource, authorization_servers}"
+{"resource": "https://gmailmcp.googleapis.com/mcp/v1", "authorization_servers": ["https://accounts.google.com/"]}
+
+$ ./scope_check.sh "gmail.readonly" "gmail.readonly offline_access" "gmail.readonly bogus_scope_xyz"   (full scope URLs)
+scope=https://www.googleapis.com/auth/gmail.readonly
+  -> /v3/signin/identifier
+scope=https://www.googleapis.com/auth/gmail.readonly offline_access
+  -> /signin/oauth/error
+   invalid_scope - Some requested scopes were invalid. {valid=[https://www.googleapis.com/auth/gmail.readonly], invalid=[offline_access]}
+scope=https://www.googleapis.com/auth/gmail.readonly bogus_scope_xyz
+  -> /signin/oauth/error
+   invalid_scope - Some requested scopes were invalid. {valid=[https://www.googleapis.com/auth/gmail.readonly], invalid=[bogus_scope_xyz]}
+
+# Claude Code 2.1.291 (Claude Code): the function that decides whether to add offline_access
+function oms(e,t){if(e!==null&&e.split(" ").includes("offline_access"))return e;if(!t?.scopes_supported?.includes("offline_access"))return e;return e===null?"offline_access":`${e} offline_access`}
