@@ -21,7 +21,17 @@ Evidence:
   `access_type=offline`, which is the parameter Google requires before it
   issues a refresh token.
 - Google's metadata does not advertise an `offline_access` scope, so Claude
-  Code's automatic `offline_access` request does not apply.
+  Code's automatic `offline_access` request does not apply. Claude Code adds
+  `offline_access` only when the authorization server's `scopes_supported`
+  lists it; `accounts.google.com` lists `openid`, `email` and `profile` in
+  its OpenID configuration and no `scopes_supported` in its OAuth metadata.
+- Google rejects the scope outright. A sign-in request with
+  `gmail.readonly offline_access` returns `invalid_scope` ("Some requested
+  scopes were invalid. {valid=[…gmail.readonly], invalid=[offline_access]}"),
+  the same answer as for a made-up scope, while `gmail.readonly` alone reaches
+  the sign-in page (2026-10-06). So do not add `offline_access` to the pinned
+  scopes in `claude_setup.sh`: Claude Code would send it, and every sign-in
+  would fail.
 - Claude Code's `oauth` server config accepts `clientId`, `callbackPort`,
   `scopes` and `authServerMetadataUrl`; none of them adds an authorization
   parameter.
