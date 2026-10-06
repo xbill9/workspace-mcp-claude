@@ -1,5 +1,5 @@
 ---
-title: "Why Claude Code Signs In to Google Workspace MCP Every Hour"
+title: "Debugging Claude Code and Google MCP Quirks"
 published: false
 description: "Claude Code asks for a refresh token the MCP way, with the offline_access scope. Google issues refresh tokens only through access_type=offline. A step by step check of both sides, with the commands and their output."
 tags: claudecode, mcp, googleworkspace, oauth
