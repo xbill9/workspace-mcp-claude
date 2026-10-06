@@ -1,0 +1,26 @@
+# How two other MCP clients build the Gmail MCP sign-in, same Web OAuth client.
+# 2026-10-06, 17:17 to 17:24 -0400. Authorization URLs captured, not completed;
+# client_id, state and code_challenge removed. Codex ran with an isolated CODEX_HOME;
+# Antigravity's mcp_config.json was restored to {"mcpServers": {}} afterwards.
+
+## Codex CLI 0.158.0
+$ codex mcp add gmail --url https://gmailmcp.googleapis.com/mcp/v1 --oauth-client-id … --oauth-client-secret …
+# config written: callback_url = "http://127.0.0.1/callback" (changed to http://localhost:8765/callback)
+$ codex mcp login gmail --no-browser --scopes gmail.readonly,gmail.compose
+accounts.google.com/o/oauth2/v2/auth
+{'response_type': ['code'], 'code_challenge_method': ['S256'], 'redirect_uri': ['http://localhost:8765/callback'], 'scope': ['https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose'], 'resource': ['https://gmailmcp.googleapis.com/mcp/v1']}
+
+## Antigravity CLI 1.2.12 (updated itself to 1.3.0 during the run)
+# server added with no oauth block:
+W1006 17:19:34.297694 mcp_auth.go:677] OAuth setup failed for gmail: OAuth client ID required: server supports neither client ID metadata documents nor dynamic client registration
+# with "oauth": {"clientId": …, "clientSecret": …}: error gone; /mcp panel shows gmail [Auth Needed]; Authenticate prints:
+accounts.google.com/o/oauth2/v2/auth
+access_type = offline
+code_challenge_method = S256
+prompt = consent
+redirect_uri = https://antigravity.google/oauth-callback
+resource = https://gmailmcp.googleapis.com/mcp/v1
+response_type = code
+scope =  gmail.compose gmail.drafts gmail.drafts.create gmail.drafts.readonly gmail.labels gmail.metadata gmail.modify gmail.readonly gmail.send gmail.settings.basic
+# Google's answer to that URL (authError decoded):
+redirect_uri_mismatch
