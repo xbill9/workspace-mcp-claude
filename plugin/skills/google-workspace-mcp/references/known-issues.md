@@ -97,6 +97,23 @@ are missing from new sessions.
 - Before a working session, run `mcp_status.sh --verify`; if any token is
   `revoked` or `expired`, sign in the ones that are.
 
+## Getting past the hour (tested 2026-10-06, Gmail only, Claude Code 2.1.292)
+
+These keep a refresh token outside Claude Code; see
+`docs/article/devto-claude-code-google-refresh-token.md` for the tradeoffs.
+
+- `headersHelper` with `docs/article/token_header.py` and a refresh token from
+  `oauth_probe.py signin … access_type=offline prompt=consent`: works. The
+  helper must refresh on every call, because Claude Code calls it only at
+  connect and did not call it again when `tools/list` was refused; a reused
+  stale token left the server connected with no tools.
+- A local proxy, `docs/article/token_proxy.py`, with the server registered as
+  `http://127.0.0.1:8790/<name>/mcp/v1`: works, and refreshes and retries on
+  Google's `401`.
+- `gcloud auth application-default login --client-id-file`: requires the
+  `cloud-platform` scope and a Desktop OAuth client; the Web client is
+  rejected.
+
 ## Options not yet tested
 
 - One OAuth client per server, so no two servers share a grant and a revoke

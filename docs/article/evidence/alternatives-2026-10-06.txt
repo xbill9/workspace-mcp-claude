@@ -1,0 +1,51 @@
+# The article's alternatives, run against the Gmail MCP server, project comglitn,
+# the Web application OAuth client claude_setup.sh registers.
+# Transcribed verbatim from terminal output of the 2026-10-06 session
+# (local time 16:48 to 16:52, -0400). Token values never printed.
+# Claude Code runs used: claude -p ... --strict-mcp-config --mcp-config <file>
+#   --allowedTools=mcp__gmail__list_labels, asking for the number of labels.
+
+$ claude --version
+2.1.292 (Claude Code)
+$ gcloud --version | head -1
+Google Cloud SDK 587.0.0
+
+## Offline sign-in (oauth_probe.py signin gmail gmail access_type=offline prompt=consent)
+ "granted_scope": [gmail.compose, gmail.readonly]
+ "expires_in": 3599,
+ "refresh_token_issued": true,
+ "at": "2026-10-06T16:48:35-0400"
+
+## Option 2: headersHelper (token_header.py), config {"type":"http","url":"https://gmailmcp.googleapis.com/mcp/v1","headersHelper":"..."}
+# a. stored access token marked expired; helper refreshed it (expires_in now 3598)
+38 labels. The first three system labels are CHAT, SENT and INBOX.
+# helper calls logged: one per session start (16:48:53, 16:48:58)
+# b. stored access token replaced by an invalid one, expiry 50 minutes ahead,
+#    helper reusing stored tokens: one helper call (16:49:23), then
+The tool is missing. ToolSearch returned: "No matching deferred tools found"
+# c. same invalid token, helper changed to refresh on every call: one helper call (16:50:43), then
+38
+
+## Option 3: gcloud auth application-default login --client-id-file (isolated CLOUDSDK_CONFIG)
+# scopes gmail.readonly,gmail.compose:
+ERROR: (gcloud.auth.application-default.login) Invalid value for [--scopes]: https://www.googleapis.com/auth/cloud-platform scope is required but not requested. Please include it in the --scopes flag.
+# + cloud-platform, Web client file:
+ERROR: (gcloud.auth.application-default.login) Only client IDs of type 'installed' are allowed, but encountered type 'web'. To obtain a valid client ID file, create a Desktop App following the steps outlined in https://support.google.com/cloud/answer/6158849?hl=en#zippy=%2Cnative-applications%2Cdesktop-apps.
+# + Web client relabelled "installed": gcloud's URL carries access_type=offline and
+#   redirect_uri=http://localhost:8085/ ; Google's answer (authError decoded):
+redirect_uri_mismatch
+
+## Option 4: local proxy (token_proxy.py), config {"type":"http","url":"http://127.0.0.1:8790/gmail/mcp/v1"}
+# stored access token replaced by an invalid one, expiry 50 minutes ahead
+38
+# proxy log:
+16:50:20 gmail POST server/discover -> 400
+16:50:20 gmail POST initialize -> 200
+16:50:20 gmail POST notifications/initialized -> 202
+16:50:20 gmail GET - -> 405
+16:50:20 gmail POST tools/list -> 401 refreshing and retrying
+16:50:20 gmail POST tools/list -> 200
+16:50:24 gmail POST tools/call -> 200
+
+## Option 5: service account with domain-wide delegation
+# not run: creating the service account was not done in this session.

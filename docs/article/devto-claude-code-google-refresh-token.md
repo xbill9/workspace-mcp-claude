@@ -205,7 +205,7 @@ Claude Code has a second way to authenticate an MCP server. `headersHelper` name
 
 Per those docs, the command prints a JSON object such as `{"Authorization": "Bearer …"}`. Claude Code runs it at connect and on reconnect, runs it again and retries once when a tool call returns `401` or `403`, does not cache its output, and gives it 10 seconds. When the output carries an `Authorization` header, Claude Code skips its own OAuth for that server.
 
-So the refresh token from Step 6 can drive a server directly. `token_header.py` in the repository is the helper. It reads the server name from `CLAUDE_CODE_MCP_SERVER_NAME`, reuses the stored access token while it has more than five minutes left, and otherwise trades the refresh token for a new one.
+So the refresh token from Step 6 can drive a server directly. `token_header.py` in the repository is the helper. It reads the server name from `CLAUDE_CODE_MCP_SERVER_NAME` and trades that server's refresh token for a new access token on every call. Claude Code calls it only when a server connects, so one call to Google's token endpoint per connect is the whole cost.
 
 Sign each server in once with offline access (`oauth_probe.py` knows `gmail`, `drive` and `people`; add the others to its `SERVERS` table):
 
@@ -224,6 +224,16 @@ Then register the server with the helper in place of the `oauth` block:
 }
 ```
 
+Run through Claude Code 2.1.292 with only that server configured, a request to list Gmail labels returned all 38, with the helper called once per session and no browser.
+
+Refreshing on every call matters. With a stored access token that Google no longer accepts but that still shows 50 minutes left, a helper that reused it was called once, the server still connected, and Gmail's tools were missing from the session:
+
+```text
+The tool is missing. ToolSearch returned: "No matching deferred tools found"
+```
+
+Claude Code did not call the helper again when `tools/list` was refused. The same stale token with the always-refresh helper returned all 38 labels.
+
 The moving parts, all of them yours:
 
 - **The OAuth client secret**, read from `~/client_secret.txt` on every refresh.
@@ -236,8 +246,40 @@ The tradeoffs:
 
 - **A refresh token on disk works until someone revokes it.** With an Internal consent screen it has no expiry of its own. Anything that can read the file, or run the helper, can read and draft your mail with nobody present. A keyring (`secret-tool` on Linux) is a better home than a file.
 - **Revocation still covers the whole grant.** The tokens share one OAuth client, so revoking any of them signs all of them out, the same as in the companion article.
-- **Failures look different.** A helper whose token Google rejects shows as a failed connection in `/mcp`, where an OAuth server shows "needs authentication".
+- **Failures are quiet.** A token Google rejects leaves the server connected with no tools, and nothing prompts for a sign-in.
 - **You maintain it.** Token handling is code you now own, on every machine you use.
+
+---
+
+#### Step 8 — Put a Proxy in Front
+
+The helper runs only at connect. A small server on your own machine can renew on demand instead: Claude Code connects to it on localhost with no credentials, and it adds the `Authorization` header to each request and forwards it to Google. `token_proxy.py` in the repository is about 90 lines of Python standard library, reusing the token code from `token_header.py`:
+
+```bash
+PROBE_DIR=~/.cache/oauth-probe python3 -I token_proxy.py
+```
+
+```json
+{
+  "type": "http",
+  "url": "http://127.0.0.1:8790/gmail/mcp/v1"
+}
+```
+
+When Google answers `401`, the proxy refreshes the token and retries the request once. With the same stale token as in Step 7, its log shows the repair inside one `tools/list` call, and the session listed all 38 labels:
+
+```text
+16:50:20 gmail POST initialize -> 200
+16:50:20 gmail POST notifications/initialized -> 202
+16:50:20 gmail GET - -> 405
+16:50:20 gmail POST tools/list -> 401 refreshing and retrying
+16:50:20 gmail POST tools/list -> 200
+16:50:24 gmail POST tools/call -> 200
+```
+
+`initialize` succeeds with an invalid token, which is why a server can show as connected with no tools. The log also gives one line per call with its JSON-RPC method, a record of what Claude Code did with your mail, with no message content.
+
+The moving parts: the same refresh token and client secret as Step 7, plus a process that has to be running before Claude Code starts, listening on a port any local program can reach.
 
 ---
 
@@ -278,21 +320,21 @@ Six ways to live with it, from no moving parts to the most.
 
 **2. headersHelper with your own refresh token.** Step 7. No browser after the first sign-in, and the helper renews in the middle of a session. The cost is a refresh token you store and guard, a script you maintain, and code that holds your client secret.
 
-**3. headersHelper with gcloud.** Let gcloud hold the refresh token: sign in once with `gcloud auth application-default login --client-id-file=… --scopes=…` listing every Workspace scope, and have the helper print `gcloud auth application-default print-access-token`. gcloud already renews tokens, so there is no token code to write. gcloud's help documents this route: scopes outside Google Cloud, such as Drive, need an OAuth client of your own passed with `--client-id-file`. The costs: one credential carries every Workspace scope you list, in gcloud's credential file next to your Google Cloud access; the Workspace admin's Google Cloud session length may decide how often gcloud asks you to sign in again; and which OAuth client type gcloud's sign-in accepts was not checked here.
+**3. headersHelper with gcloud.** Let gcloud hold the refresh token: sign in once with `gcloud auth application-default login --client-id-file=… --scopes=…` listing every Workspace scope, and have the helper print `gcloud auth application-default print-access-token`. gcloud sends `access_type=offline` on its own and already renews tokens, so there is no token code to write. Run here, gcloud 587.0.0 set two conditions. It refuses any scope list without `cloud-platform`, and it accepts only a Desktop client: the Web client from `claude_setup.sh` was rejected as `Only client IDs of type 'installed' are allowed`, and relabelled as one it reached Google with `redirect_uri=http://localhost:8085/` and got `redirect_uri_mismatch`. So this route needs a second OAuth client, of type Desktop, and gives one credential every Workspace scope plus full Google Cloud access, in gcloud's credential file.
 
-**4. A local proxy MCP server.** A small server on your machine holds the refresh token, adds the `Authorization` header and forwards each request to `*mcp.googleapis.com`; Claude Code connects to localhost. It gives the most control, such as logging every tool call or narrowing what each client can reach. It is also the most code: a server to keep running, Streamable HTTP to pass through, and the same stored refresh token as option 2.
+**4. A local proxy MCP server.** A small server on your machine holds the refresh token, adds the `Authorization` header and forwards each request to `*mcp.googleapis.com`; Claude Code connects to localhost. Step 8. It renews on any `401`, at connect or mid-session, and logs every call. It is also the most code: a process to keep running, Streamable HTTP to pass through, and the same stored refresh token as option 2.
 
-**5. A service account with domain-wide delegation.** A Workspace admin lets a service account act as users, and the helper mints tokens for your account with no user sign-in at all. The cost is a key file and a tenant-wide grant: that service account can act as anyone in the domain for the delegated scopes, which is a large grant for one developer's editor.
+**5. A service account with domain-wide delegation.** A Workspace admin lets a service account act as users, and the helper mints tokens for your account with no user sign-in at all. `dwd_header.py` in the repository is a helper for it that needs no key file: the IAM Credentials API signs the request with the service account's Google-held key. Running it needs a service account, a token-creator role on it and an Admin console delegation, none of which were set up here. The cost is a tenant-wide grant: that service account can act as anyone in the domain for the delegated scopes, which is a large grant for one developer's editor.
 
 **6. The fix upstream.** Google accepting `offline_access` and listing it in `scopes_supported`, or a general Claude Code setting for extra authorization parameters. Nothing to run or store, and Claude Code keeps the refresh token in its own credential store. The cost is waiting.
 
 | Option | Code you own | Browser sign-ins | Long-lived credential | Checked here |
 | :--- | :--- | :--- | :--- | :--- |
 | 1. Sign in hourly | none | every hour | none | ✅ |
-| 2. headersHelper + own token | helper + sign-in script | once per server | refresh token in a file | ⚠️ renewal only |
-| 3. headersHelper + gcloud | one-line helper | once, then per session length | gcloud's refresh token | ❌ |
-| 4. Local proxy | a server | once per server | refresh token | ❌ |
-| 5. Service account | helper | none | service account key | ❌ |
+| 2. headersHelper + own token | helper + sign-in script | once per server | refresh token in a file | ✅ |
+| 3. headersHelper + gcloud | one-line helper + Desktop client | once, then per session length | gcloud's refresh token, with `cloud-platform` | ⚠️ blocked: needs a Desktop client |
+| 4. Local proxy | a server + sign-in script | once per server | refresh token in a file | ✅ |
+| 5. Service account | helper | none | a domain-wide grant | ❌ not run |
 | 6. Upstream fix | none | once | refresh token in Claude Code's store | n/a |
 
 ---
@@ -309,9 +351,11 @@ Six ways to live with it, from no moving parts to the most.
 
 For most sessions, option 1: sign all eight in together and accept the hourly sign-in. It adds nothing to guard.
 
-For long unattended sessions on your own machine, option 2, with the refresh token in a keyring and revoked when the work is done. It removes the hourly sign-in at the price of a credential that outlives the session.
+To stop signing in on your own machine, option 2, with the refresh token in a keyring and revoked when the work is done. It is one short script, and each new session starts with a fresh hour.
 
-Options 3 to 5 trade a smaller script for a bigger credential, or a bigger build for more control. Pursue option 6 alongside whichever you pick: Google supporting `offline_access` is the fix that follows the MCP specification, and it reaches every standards-based MCP client at once.
+For sessions that run past the hour, or when you want a record of every call, option 4. It renews whenever Google refuses a token, at the price of a process to keep running.
+
+Option 3 needs a second OAuth client and gives gcloud full Google Cloud access alongside your mail, and option 5 needs a domain-wide grant, which is a lot to hand one developer's editor. Pursue option 6 alongside whichever you pick: Google supporting `offline_access` is the fix that follows the MCP specification, and it reaches every standards-based MCP client at once.
 
 ---
 
@@ -324,10 +368,12 @@ The goal of this article was to find why Claude Code needs a fresh Google sign-i
 - ❌ **Google lists `offline_access` nowhere** and rejects it with `invalid_scope`, the same answer as for a made-up scope.
 - 🟢 **`access_type=offline` works**: the same sign-in with that parameter returns a refresh token that renews without a browser.
 - ⚠️ **Claude Code has no setting** for an extra authorization parameter, and pinning `offline_access` breaks every sign-in.
-- 🟢 **`headersHelper` can supply your own token**: Claude Code re-runs it on a `401`, so a helper holding a refresh token renews in the middle of a session.
+- 🟢 **`headersHelper` with your own refresh token works**: Claude Code listed Gmail labels through it with no browser, as long as the helper refreshes on every call.
+- 🟢 **A local proxy also works** and repairs a refused token inside the request, with a log of every call.
+- ⚠️ **gcloud needs its own Desktop client** and the `cloud-platform` scope before it will hold Workspace scopes.
 - ⚠️ **Every route past the hour stores a long-lived credential**: a refresh token, a gcloud credential or a service account key, held by you instead of Claude Code.
 
-Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 on Linux, checked on 2026-10-06. The refresh test used the Gmail server only. Claude Code's behaviour comes from its sign-in URL, the function quoted in Step 3 and its MCP documentation. For option 2, the refresh token's renewal was measured; Claude Code connecting through `token_header.py` was not run. Options 3 to 5 were not run, and other MCP clients were not tested.
+Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client, Claude Code 2.1.291 for Steps 1 to 6 and 2.1.292 for Steps 7 and 8, gcloud 587.0.0, on Linux, checked on 2026-10-06. Options 2 to 4 were run against the Gmail server only, one session each, with Claude Code configured with that one server. Claude Code's sign-in behaviour comes from its sign-in URL, the function quoted in Step 3 and its MCP documentation. Option 3 stopped at Google's redirect check for want of a Desktop client, option 5 was not run, renewal after a full hour inside one session was not timed, and other MCP clients were not tested.
 
 The strategy for diagnosing the hourly sign-in for Google Workspace MCP from Claude Code was validated with an incremental step by step approach.
 
