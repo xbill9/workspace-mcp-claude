@@ -11,11 +11,10 @@
 # for Google's redirect; opening the printed URL in a browser on this machine
 # and clicking Allow completes it. The listener gives up after 10 minutes.
 #
-# `start` drops the server's existing sign-in straight away, even if the new
-# one is never finished. Only start a server that needs signing in.
-#
-# Sign in People before the others: a repeat People sign-in revokes the
-# tokens of every server signed in before it.
+# `start` revokes the server's existing token straight away, even if the new
+# sign-in is never finished, and Google then revokes every other server's
+# token too: they share one OAuth client. Only start a server whose token is
+# expired or revoked (`mcp_status.sh --verify`).
 #
 # With MCP_SCOPE=local registrations, run it from the directory the servers
 # were registered for.

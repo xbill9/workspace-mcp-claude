@@ -46,8 +46,9 @@ Two sign-in limits apply (details in `references/known-issues.md`):
 
 - Google issues these sign-ins without a refresh token, so each lasts about an
   hour and then needs signing in again.
-- A repeat People sign-in makes Google revoke the tokens of every server
-  signed in before it, so People always goes first. `claude mcp list` still
+- Signing in again a server whose token still works makes Google revoke
+  every server's token (they share one OAuth client), so sign all eight in
+  together once they have expired. `claude mcp list` still
   shows revoked servers `✔ Connected` and the expiry still shows minutes left;
   only `--verify` or `mcp_test.sh` reveals it, and in a session their tools are
   simply missing.
@@ -140,7 +141,7 @@ tell the user to restart Claude Code before using them interactively.
 | Symptom | Cause and fix |
 |---|---|
 | `! Needs authentication`, 401, FAIL in `mcp_test.sh` after it passed earlier | sign-in expired (about an hour, no refresh token): `mcp_status.sh --verify`, then sign all servers in again |
-| tools for a server missing from the session while `claude mcp list` shows `✔ Connected`; `NOT CALLED` in `mcp_test.sh` | token revoked by a repeat People sign-in: `mcp_status.sh --verify` shows `revoked`; sign the revoked servers in again (People stays signed in) |
+| tools for a server missing from the session while `claude mcp list` shows `✔ Connected`; `NOT CALLED` in `mcp_test.sh` | token revoked because a working server was signed in again: `mcp_status.sh --verify` shows `revoked`; sign the revoked servers in again |
 | `insufficient_scope` on a tool | the tool needs a scope outside the pinned set (Gmail trash/spam/labels, Calendar writes): add it to the server's entry in `claude_setup.sh` and the consent screen, re-run step 4, sign that server in again |
 | `redirect_uri_mismatch` | the client lacks `http://localhost:$CALLBACK_PORT/callback` |
 | `access_denied` / app not verified | External audience without the user as a test user, or not in the Developer Preview |

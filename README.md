@@ -17,15 +17,15 @@ Then ask Claude Code something like *"connect my Gmail and Drive to Claude Code"
 
 ## Known issues: sign-in
 
-Two limits, measured on 2026-10-04 with Claude Code 2.1.289 and one OAuth client shared by all eight servers. Details and evidence: [`known-issues.md`](plugin/skills/google-workspace-mcp/references/known-issues.md). Every other quirk seen during setup (sign-in pages, servers, Claude Code, Cloud console, environment) is catalogued in [`quirks.md`](plugin/skills/google-workspace-mcp/references/quirks.md).
+Two limits, measured on 2026-10-04 and 2026-10-06 with Claude Code 2.1.289 and 2.1.291 and one OAuth client shared by all eight servers. Details and evidence: [`known-issues.md`](plugin/skills/google-workspace-mcp/references/known-issues.md). Every other quirk seen during setup (sign-in pages, servers, Claude Code, Cloud console, environment) is catalogued in [`quirks.md`](plugin/skills/google-workspace-mcp/references/quirks.md).
 
-- ⚠️ **Sign-ins last about an hour.** Google issues them without a refresh token (Claude Code's authorization request has no `access_type=offline`), so Claude Code cannot renew them.
-- ⚠️ **A repeat People sign-in revokes the other servers' tokens.** Signing People in again made Google revoke every token issued before it, while they still had most of their hour left (reproduced twice). Sign-ins for the other seven revoke nothing. `claude mcp list` keeps showing `✔ Connected`, and in a session the revoked servers' tools are simply missing.
+- ⚠️ **Sign-ins last about an hour.** Google issues them without a refresh token (Claude Code's authorization request has no `access_type=offline`), so Claude Code cannot renew them. The same sign-in with `access_type=offline&prompt=consent` added returns a refresh token that renews without a browser.
+- ⚠️ **Signing a working server in again revokes every server's token.** Claude Code revokes the server's old token, and Google revokes the whole grant for the OAuth client the eight servers share. Revoking a single Drive token took Gmail with it; a sign-in on its own revokes nothing. `claude mcp list` keeps showing `✔ Connected`, and in a session the revoked servers' tools are simply missing.
 
 To work with them:
 
-- 🟢 Sign in People first, then Gmail, Drive, Docs, Sheets, Slides, Calendar and Chat, then run `./mcp_status.sh --verify` and `./mcp_test.sh`. `bootstrap.sh` uses this order.
-- 🟢 When People needs signing in again, sign the other seven in again after it. Any other server can be signed in again on its own.
+- 🟢 Sign all eight in together, in any order, once their tokens have expired, then run `./mcp_status.sh --verify` and `./mcp_test.sh`. `bootstrap.sh` does this.
+- 🟢 A server whose token is `revoked` or `expired` can be signed in on its own. Never sign in again a server whose token still works.
 - Before a working session, `./mcp_status.sh --verify` reports each token as `valid`, `expired` or `revoked`.
 
 ## Servers

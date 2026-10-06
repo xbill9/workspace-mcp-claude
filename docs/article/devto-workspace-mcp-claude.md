@@ -10,7 +10,7 @@ This article provides a step by step configuration guide for the Google Workspac
 
 https://github.com/xbill9/workspace-mcp-claude
 
-**All eight Workspace servers pass a read-only test from Claude Code. Two sign-in limits shape how you use them: each sign-in lasts about an hour, and signing People in again revokes every token issued before it, so People always goes first.**
+**All eight Workspace servers pass a read-only test from Claude Code. Two sign-in limits shape how you use them: each sign-in lasts about an hour, and signing a working server in again revokes every server's token, so all eight sign in together.**
 
 ---
 
@@ -186,9 +186,9 @@ Each server gets its scopes pinned in `oauth.scopes` and the fixed callback port
 
 ---
 
-#### Step 7 — Sign In, People First
+#### Step 7 — Sign In All Eight Together
 
-Sign in People before the other seven. A repeat People sign-in revokes every token issued before it, so the order matters every time you sign in again. The known issues below have the measurements.
+Sign all eight servers in one pass. Signing a server in again while its token still works revokes every server's token, so sign them in together once they have expired. The known issues below have the measurements.
 
 From your own terminal, in the repository directory:
 
@@ -196,7 +196,7 @@ From your own terminal, in the repository directory:
 for s in people gmail drive docs sheets slides calendar chat; do claude mcp login $s; done
 ```
 
-Or run `/mcp` inside Claude Code and pick **Authenticate** on each server, People first.
+Or run `/mcp` inside Claude Code and pick **Authenticate** on each server.
 
 Claude Code can also do it for you through the Chrome extension. `claude mcp login` needs a terminal, so `mcp_login.sh` runs it under a pseudo-terminal and prints the Google sign-in URL for Claude to open. `check` confirms once **Allow** has been clicked:
 
@@ -439,7 +439,7 @@ The skill loads when a request is about connecting, signing in to, testing or fi
 | "Connect my Gmail and Drive to Claude Code" | checks what exists, then walks the missing steps in order |
 | "Is my Google Workspace MCP setup working?" | runs `mcp_status.sh --verify` and `mcp_test.sh` |
 | "My Gmail tools disappeared" | checks for revoked or expired tokens and says which servers to sign in again |
-| "Sign my Workspace servers back in" | People first, then the other seven |
+| "Sign my Workspace servers back in" | the servers whose tokens are expired or revoked |
 | "Gmail says insufficient_scope" | names the scope to add in `claude_setup.sh` and on the consent screen |
 
 It always starts by finding out what is already done, because setup is usually half finished: a project with the APIs on, a client from an earlier tool, servers registered for another directory.
@@ -465,7 +465,7 @@ Yes, it works. All eight Workspace servers answered a real read-only call, and G
 - **The servers only exist in `~/workspace-mcp-claude`.** They're registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn't show them and their tools aren't available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.
 ```
 
-Moving the servers to `user` scope drops their sign-ins and their client secret, because both are stored per server name. Remove the `local` copies, run `MCP_SCOPE=user ./claude_setup.sh` once more, then sign in to all eight again, People first.
+Moving the servers to `user` scope drops their sign-ins and their client secret, because both are stored per server name. Remove the `local` copies, run `MCP_SCOPE=user ./claude_setup.sh` once more, then sign in to all eight again.
 
 ---
 
@@ -474,7 +474,7 @@ Moving the servers to `user` scope drops their sign-ins and their client secret,
 | File | Purpose |
 | :--- | :--- |
 | `SKILL.md` | the workflow: check first, then APIs, console, secret, register, sign in, test |
-| `scripts/bootstrap.sh` | APIs, client install, registration, sign-in (People first) |
+| `scripts/bootstrap.sh` | APIs, client install, registration, sign-in of all eight |
 | `scripts/claude_setup.sh` | registers the eight servers plus `workspace-developer` with pinned scopes |
 | `scripts/mcp_login.sh` | sign-in without a terminal: prints the Google URL, then confirms |
 | `scripts/mcp_status.sh` | sign-in state per server; `--verify` asks Google |
@@ -505,22 +505,24 @@ Google issues these sign-ins without a refresh token, so Claude Code cannot rene
 
 The authorization URL Claude Code builds carries `response_type`, `client_id`, PKCE, `redirect_uri`, `state`, `scope` and `resource`. Google issues a refresh token only when the request also asks for offline access (`access_type=offline`), and Claude Code's `oauth` settings (`clientId`, `callbackPort`, `scopes`, `authServerMetadataUrl`) have no field that adds it.
 
+The same Gmail sign-in made by hand with `access_type=offline&prompt=consent` added returns a refresh token, and that refresh token returns a new access token with no browser. One parameter closes the gap.
+
 Plan for a fresh sign-in each working hour. `mcp_status.sh` shows the minutes left.
 
 ---
 
-#### Known Issue: A Repeat People Sign-In Revokes the Others
+#### Known Issue: Signing a Server In Again Revokes Every Server
 
-Signing People in again makes Google revoke the token of every server signed in before it, while those tokens still have most of their hour left. Sign-ins for the other seven revoke nothing. Each row below was checked with Google's token-info endpoint:
+Starting a new sign-in for a server whose token still works makes Claude Code revoke that old token, and Google then revokes the whole grant for the OAuth client. All eight servers share one client, so every server's token goes at once, refresh tokens included. Each row below was checked with Google's token-info endpoint:
 
-| Sign-in order | Tokens Google accepts afterwards |
+| Step | Tokens Google accepts afterwards |
 | :--- | :--- |
-| All eight, People last, first sign-in for each | 8 of 8 ✅ |
-| People again | People only ❌ |
-| All eight again, People last | 7 valid until People, then People only ❌ |
-| People first, then the other seven | 8 of 8 ✅ |
+| Gmail, then People, then People again (signed in by hand) | Gmail and People ✅ |
+| Revoke one People token | none ❌ |
+| Fresh Gmail and Drive, then revoke the Drive token | none ❌ |
+| Gmail and Drive through Claude Code, then start a Drive sign-in | Gmail revoked with 58 minutes left ❌ |
 
-People's repeat sign-in shows one extra step: a "Sign in to Workspace MCP Servers" page with your name and profile picture, and a `profile` scope added to the grant. Why Google revokes the other tokens is unconfirmed.
+A sign-in on its own revokes nothing; the revoke of the old token does. A server whose token is already revoked or expired has nothing left to revoke, so it can be signed in on its own. After a revocation, Google shows the full permissions page again for every server.
 
 A revoked server is hard to spot. `claude mcp list` still shows it `✔ Connected`, the stored expiry still shows minutes left, and in a session its tools are simply missing. Claude Code's debug log has the reason:
 
@@ -529,7 +531,7 @@ A revoked server is hard to spot. `claude mcp list` still shows it `✔ Connecte
 [ERROR] MCP server "slides" Failed to fetch tools: Unauthorized
 ```
 
-`mcp_status.sh --verify` reports such a token as `revoked`. `bootstrap.sh` and the skill sign People in first.
+`mcp_status.sh --verify` reports such a token as `revoked`. `bootstrap.sh` and the skill sign all eight in one pass.
 
 ---
 
@@ -581,9 +583,9 @@ claude.ai and Claude Desktop take the same eight URLs as custom connectors (**Se
 
 #### So, Which One?
 
-For terminal work in Claude Code, the `google-workspace-mcp` skill. It registers all eight servers with pinned scopes, keeps the secret out of config files, signs People in first, and proves the result with a read-only test.
+For terminal work in Claude Code, the `google-workspace-mcp` skill. It registers all eight servers with pinned scopes, keeps the secret out of config files, signs all eight in one pass, and proves the result with a read-only test.
 
-Plan around the hourly sign-in. `mcp_status.sh --verify` at the start of a session tells you which servers need it, and People first keeps one sign-in from undoing the others.
+Plan around the hourly sign-in. `mcp_status.sh --verify` at the start of a session tells you which servers need it, and signing all eight in together keeps one sign-in from undoing the others.
 
 ---
 
@@ -596,9 +598,9 @@ The goal of this article was to connect Claude Code to Google's eight remote Wor
 - 🟢 **One command registers everything** with pinned scopes, and the client secret stays out of every config file.
 - 🟢 **Installable as a plugin** from the repository, with manifests and skill that validate.
 - ⚠️ **Sign-ins last about an hour**, with no refresh token issued.
-- ❌ **A repeat People sign-in revokes the other seven tokens**; signing People in first avoids it.
+- ❌ **Signing a working server in again revokes every server's token**, because the eight share one OAuth client; signing all eight in together avoids it.
 
-Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client shared by all eight servers, Claude Code 2.1.289 on Linux, checked on 2026-10-04 and 2026-10-05. The revocation was reproduced twice with Google's token-info endpoint; its cause on Google's side is unconfirmed. Separate OAuth clients per server and claude.ai connectors were not tested.
+Scope: one Google Workspace account in the Developer Preview, one Google Cloud project with an Internal consent screen and one Web application OAuth client shared by all eight servers, Claude Code 2.1.289 and 2.1.291 on Linux, checked on 2026-10-04, 2026-10-05 and 2026-10-06. The revocation was measured with Google's token-info endpoint, both through Claude Code and with tokens revoked by hand. Separate OAuth clients per server and claude.ai connectors were not tested.
 
 The strategy for using MCP with Google Workspace from Claude Code was validated with an incremental step by step approach.
 

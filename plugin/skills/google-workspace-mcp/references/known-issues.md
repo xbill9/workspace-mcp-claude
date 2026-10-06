@@ -1,9 +1,9 @@
 # Known issues: sign-in
 
 Two limits on how long Claude Code stays signed in to the Workspace MCP
-servers. Both were measured on 2026-10-04 with Claude Code 2.1.289, one Web
-application OAuth client shared by all eight servers, and an Internal consent
-screen. Neither has a fix in this setup; plan around them.
+servers, measured on 2026-10-04 and 2026-10-06 with Claude Code 2.1.289 and
+2.1.291, one Web application OAuth client shared by all eight servers, and an
+Internal consent screen. Neither has a fix in this setup; plan around them.
 
 ## 1. Sign-ins last about an hour
 
@@ -25,26 +25,39 @@ Evidence:
 - Claude Code's `oauth` server config accepts `clientId`, `callbackPort`,
   `scopes` and `authServerMetadataUrl`; none of them adds an authorization
   parameter.
+- The same Gmail sign-in made outside Claude Code (`oauth_probe.py`) with
+  `access_type=offline&prompt=consent` added returned a refresh token, and
+  that refresh token returned a new access token without a browser
+  (2026-10-06). The missing parameter is the whole gap.
 
-## 2. A repeat People sign-in revokes the other servers' tokens
+## 2. Signing a server in again revokes every server's token
 
-Signing the People server in again makes Google revoke the tokens of every
-other server signed in before it, all issued through the same OAuth client,
-while those tokens still have most of their hour left. Reproduced twice.
+Starting a new sign-in for a server whose token still works makes Claude Code
+revoke that token at Google's revocation endpoint, and Google revokes the
+whole grant for the OAuth client: every server's access token, and any refresh
+token, all at once. All eight servers share one OAuth client, so to Google
+they are one app with one grant. Measured on 2026-10-06 with Claude Code
+2.1.291.
 
 Evidence:
 
-| Sign-in order | Result (Google tokeninfo) |
+| Step | Result (Google tokeninfo) |
 |---|---|
-| Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People (first time for all) | 8 of 8 valid; `mcp_test.sh` passed 8 of 8 |
-| People again | Gmail through Chat rejected (HTTP 400), People valid |
-| Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People | Gmail through Chat valid after each other's sign-ins; after People, the seven rejected, People valid |
-| People, then Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat | 8 of 8 valid; `mcp_test.sh` passed 8 of 8 |
+| Gmail, then People, then People again, signed in outside Claude Code (`oauth_probe.py`) | Gmail valid after both People sign-ins |
+| Revoke one People access token | Gmail and both People tokens rejected |
+| Fresh Gmail and Drive; revoke the Drive access token | Gmail rejected too |
+| Gmail and Drive signed in through Claude Code; `claude mcp login drive` started | Gmail `revoked` with 58 minutes left |
+| A Gmail refresh token issued before these revocations | `Token has been expired or revoked` |
 
-Sign-ins for the other seven servers revoke neither each other nor People.
-People's repeat sign-in differs in one visible way: Google first shows "Sign in
-to Workspace MCP Servers" (name and profile picture) and adds a `profile`
-scope to the grant. Why Google revokes the other tokens is unconfirmed.
+After a revocation, Google shows the full permissions page again on the next
+sign-in of every server, because the grant is gone.
+
+A sign-in on its own revokes nothing; the revoke of the old token does. A
+server whose token is already revoked can be signed in again on its own: on
+2026-10-04, seven sign-ins in a row after a revocation cancelled nothing. An
+expired token should behave the same, since Google rejects it outright. The 2026-10-04 runs
+pointed at People only because People was the one server re-signed while its
+token still worked: the other seven had already been revoked by then.
 
 After a revocation, Claude Code's debug log shows
 `Failed to fetch tools: Unauthorized` for the affected servers, and their tools
@@ -64,20 +77,19 @@ are missing from new sessions.
 
 ## Working with these limits
 
-- Sign in People first, then the other seven, in one pass; then run
-  `mcp_status.sh --verify` and `mcp_test.sh` straight away. `bootstrap.sh`
-  uses this order.
-- When People needs signing in again, sign the other seven in again after it.
-  Any other server can be signed in again on its own.
-- `mcp_login.sh start` drops the server's current sign-in immediately, so do
-  not use it on a server that still works.
+- Sign all eight in together, in any order, once their tokens have expired;
+  then run `mcp_status.sh --verify` and `mcp_test.sh` straight away.
+- Never sign in again a server whose token still works: it signs every server
+  out. A server whose token is `revoked` (or `expired`) can be signed in on
+  its own.
+- `mcp_login.sh start` revokes the server's current token immediately, and
+  with it every other server's, whether or not the new sign-in finishes.
 - Before a working session, run `mcp_status.sh --verify`; if any token is
-  `revoked` or `expired`, sign everything in again.
+  `revoked` or `expired`, sign in the ones that are.
 
 ## Options not yet tested
 
-- One OAuth client per server, so no two servers share a grant.
-- The same full scope set (all 21) pinned on every server, so every sign-in
-  requests an identical grant.
+- One OAuth client per server, so no two servers share a grant and a revoke
+  reaches only its own server.
 - Claude.ai or Claude Desktop custom connectors, which run their own OAuth
   flow through `https://claude.ai/api/mcp/auth_callback`.

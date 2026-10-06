@@ -106,10 +106,10 @@ Bash tool use `scripts/mcp_login.sh`:
 3. The tab lands on `localhost:8765/callback`; `mcp_login.sh check <server>`
    prints `Signed in: <server>`.
 
-One server at a time: they share the callback port. People first: a repeat
-People sign-in revokes every token issued before it (`known-issues.md`).
-`start` drops the
-server's existing sign-in, so only start servers that need it. The consent is
+One server at a time: they share the callback port. `start` revokes the
+server's existing token and, with it, every other server's
+(`known-issues.md`), so only start servers whose token is `expired` or
+`revoked`. The consent is
 a grant of access to the user's Google data; do it only when the user has
 asked for the sign-in to be done for them.
 

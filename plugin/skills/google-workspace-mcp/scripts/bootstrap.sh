@@ -32,8 +32,8 @@ for arg in "$@"; do
     esac
 done
 
-# People first: a repeat People sign-in revokes the tokens of the servers
-# signed in before it (references/known-issues.md).
+# Signs in all eight in one pass. Signing a working server in again revokes
+# every server's token (references/known-issues.md), so they go together.
 SERVERS="people gmail drive docs sheets slides calendar chat"
 
 # --- 1. APIs ---------------------------------------------------------------

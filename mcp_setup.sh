@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# People first: a repeat People sign-in revokes the other servers' earlier tokens.
+# Sign in all eight together: signing a working server in again revokes every server's token.
 SERVERS="people gmail drive docs sheets slides calendar chat"
 
 echo "Claude Code"

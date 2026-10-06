@@ -15,11 +15,10 @@ about it. The two sign-in limits with lasting impact have their own page,
 
 ## 1. Google sign-in pages
 
-- **People must be signed in first.** A repeat People sign-in revokes the
-  tokens of every server signed in before it (reproduced twice). Sign-ins for
-  the other seven revoke neither each other nor People. Order: People, then
-  Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat. `bootstrap.sh` and
-  `mcp_setup.sh` use this order.
+- **Signing a working server in again signs every server out.** Claude Code
+  revokes the server's old token, and Google revokes the whole grant for the
+  shared OAuth client. Sign all eight in together once they have expired;
+  order does not matter. Details in `known-issues.md`.
 - **People's sign-in has an extra step.** Before the permissions page it shows
   "Sign in to Workspace MCP Servers" with name and profile picture and a
   **Continue** button. The callback then reports a `profile` scope on top of
@@ -28,6 +27,7 @@ about it. The two sign-in limits with lasting impact have their own page,
   `resource=https://people.googleapis.com/mcp`, the value from People's
   protected resource metadata, while the configured server URL is
   `https://people.googleapis.com/mcp/v1`. The sign-in works either way.
+  Drive did the same on 2026-10-06 (`resource=https://drivemcp.googleapis.com/mcp`).
 - **The account chooser ignores the first interaction after it loads.** A
   click on the account, by coordinates or by element, often leaves the page on
   "Choose an account". Click the account and press Enter; if the chooser is
@@ -69,8 +69,8 @@ about it. The two sign-in limits with lasting impact have their own page,
 - **`claude mcp login` needs a terminal.** From a non-interactive shell it
   stops with "stdin isn't a terminal". `mcp_login.sh` runs it under `script`
   with `BROWSER=/bin/true` and prints the sign-in URL instead.
-- **Starting a login drops the current token** at once, whether or not the
-  login finishes.
+- **Starting a login revokes the current token** at once, whether or not the
+  login finishes, and with it every other server's token (`known-issues.md`).
 - **Revoked tokens look healthy.** `claude mcp list` stays `✔ Connected`, the
   stored expiry shows minutes left, and in a session the server's tools are
   missing. With `--debug`, the log (`~/.claude/debug/<session>.txt`) shows
@@ -87,8 +87,8 @@ about it. The two sign-in limits with lasting impact have their own page,
   Credentials are stored per server name, so removing the `local` copies after
   registering the eight at `user` scope left every server with no token, and
   sign-in then failed with `client_secret is missing`. Run
-  `MCP_SCOPE=user ./claude_setup.sh` again after the removal, then sign in,
-  People first.
+  `MCP_SCOPE=user ./claude_setup.sh` again after the removal, then sign all
+  eight in.
 - **The client secret is set only when a server is added**
   (`--client-secret` with `MCP_CLIENT_SECRET`). Changing it means
   `claude mcp remove` and adding the server again.
