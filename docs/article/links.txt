@@ -1,0 +1,8 @@
+# Destination URLs for the LinkedIn, Slack and Google Chat posts. PENDING fails the
+# run on purpose: a post whose links do not resolve is worse than no post.
+devto-gde  = https://dev.to/gde/mcp-configuration-for-google-workspace-with-claude-code-11om
+medium     = https://xbill999.medium.com/mcp-configuration-for-google-workspace-with-claude-code-87b91d6e6d2e
+builder    = SKIP
+repo       = https://github.com/xbill9/workspace-mcp-claude
+devto-aws  = SKIP
+linkedin   = https://www.linkedin.com/posts/xbill_gde-claudecode-claudeskills-activity-7512892522633789440-5nZo

@@ -1,0 +1,14 @@
+MCP Configuration for Google Workspace with Claude Code
+
+Connect Claude Code to Google's eight remote Workspace MCP servers (Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat and People), packaged as a Claude Code skill, with the two sign-in limits that decide how you use it.
+
+What is in it:
+
+- 🟢 8 of 8 servers pass a read-only test from a headless Claude Code session, graded from the tool results.
+- 🟢 59 tools across the eight servers; seven advertise the 2026-07-28 MCP specification and all eight accept 2025-11-25.
+- 🟢 One command registers everything with pinned scopes, and the client secret stays out of every config file.
+- 🟢 Installable as a plugin from the repository, with manifests and skill that validate.
+
+dev.to (Google Developer Experts): https://dev.to/gde/mcp-configuration-for-google-workspace-with-claude-code-11om
+Medium: https://xbill999.medium.com/mcp-configuration-for-google-workspace-with-claude-code-87b91d6e6d2e
+Source: https://github.com/xbill9/workspace-mcp-claude
