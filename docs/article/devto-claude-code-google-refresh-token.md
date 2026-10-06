@@ -376,14 +376,6 @@ helper (probe) refresh  : HTTP 400 invalid_grant: Token has been expired or revo
 
 Every client on one OAuth client shares one grant. A Claude Code re-sign-in, which revokes the old token, signs Antigravity and Codex out as well, refresh token included. A separate OAuth client per tool keeps both the grants and the scopes apart.
 
---- | :--- | :--- | :--- |
-| `access_type=offline` | ❌ | ❌ | ✅ with `prompt=consent` |
-| Scopes | pinned per server | passed at login | every scope the server lists, 10 for Gmail |
-| Redirect URI | `localhost:8765/callback` | `callback_url` setting | `https://antigravity.google/oauth-callback` |
-| Client secret kept in | Claude Code's credential store | `config.toml` | `mcp_config.json` |
-
-Codex sends the same request as Claude Code. Antigravity, Google's own client, sends Google's parameter and asks for every scope Gmail lists, including `gmail.send` and `gmail.modify`. Each client needs its redirect URI on the OAuth client, and every client set up with that one OAuth client shares one grant with Google, so the revocation from the Tip above reaches all of them.
-
 ---
 
 #### Where Does the Fix Belong?

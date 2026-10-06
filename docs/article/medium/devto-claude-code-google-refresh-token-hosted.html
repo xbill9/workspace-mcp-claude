@@ -578,20 +578,6 @@ helper (probe) refresh  : HTTP 400 invalid_grant: Token has been expired or revo
 re-sign-in, which revokes the old token, signs Antigravity and Codex out
 as well, refresh token included. A separate OAuth client per tool keeps
 both the grants and the scopes apart.</p>
-<p>--- | :--- | :--- | :--- | | <code>access_type=offline</code> | no |
-no | yes, with <code>prompt=consent</code> | | Scopes | pinned per
-server | passed at login | every scope the server lists, 10 for Gmail |
-| Redirect URI | <code>localhost:8765/callback</code> |
-<code>callback_url</code> setting |
-<code>https://antigravity.google/oauth-callback</code> | | Client secret
-kept in | Claude Code's credential store | <code>config.toml</code> |
-<code>mcp_config.json</code> |</p>
-<p>Codex sends the same request as Claude Code. Antigravity, Google's
-own client, sends Google's parameter and asks for every scope Gmail
-lists, including <code>gmail.send</code> and <code>gmail.modify</code>.
-Each client needs its redirect URI on the OAuth client, and every client
-set up with that one OAuth client shares one grant with Google, so the
-revocation from the Tip above reaches all of them.</p>
 <hr />
 <h4 id="where-does-the-fix-belong">Where Does the Fix Belong?</h4>
 <p><strong>Google's authorization server.</strong> SEP-2207 puts the
