@@ -1,0 +1,73 @@
+# Token revocation and offline access, project comglitn, one Web application
+# OAuth client shared by all eight servers.
+# Transcribed verbatim from terminal output of the 2026-10-06 session
+# (local time 09:24 to 13:25, -0400). Token values never printed.
+# "check" is oauth_probe.py check (Google tokeninfo per recorded token).
+
+$ claude --version
+2.1.291 (Claude Code)
+
+## 1. Gmail sign-in with access_type=offline&prompt=consent (oauth_probe.py signin gmail gmail access_type=offline prompt=consent)
+{
+ "step": "signin",
+ "label": "gmail",
+ "server": "gmail",
+ "extra": {
+  "access_type": "offline",
+  "prompt": "consent"
+ },
+ "granted_scope": [
+  "https://www.googleapis.com/auth/gmail.compose",
+  "https://www.googleapis.com/auth/gmail.readonly"
+ ],
+ "expires_in": 3599,
+ "refresh_token_issued": true,
+ "at": "2026-10-06T09:24:55-0400"
+}
+
+## 1b. Refresh token exchanged for a new access token, no browser; new token checked with tokeninfo
+keys: ['Authorization'] valid: yes expires_in: 3599 scope: https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.readonly
+2026-10-06T09:27:27-0400 refreshed expires_in=3599
+
+## 2. Signed in by hand: Gmail, then People, then People again (no extra parameters)
+# after Gmail + People:
+ "label": "A-gmail",	 "valid": true,
+ "label": "A-people",	 "valid": true,
+# after the repeat People sign-in (callback scope gained "profile"), checked twice 20 s apart:
+ "label": "A-gmail",	 "valid": true,	 "error": null,
+ "label": "A-people",	 "valid": true,	 "error": null,
+ "label": "A-people2",	 "valid": true,	 "error": null,
+
+## 3. Revoke one People access token (POST https://oauth2.googleapis.com/revoke)
+revoke A-people: HTTP 200
+ "label": "A-gmail",	 "valid": false,
+ "label": "A-people",	 "valid": false,
+ "label": "A-people2",	 "valid": false,
+# Next Gmail sign-in showed the full permissions page again.
+
+## 4. Fresh Gmail and Drive, then revoke the Drive access token
+ "label": "B-gmail",	 "valid": true,
+ "label": "B-drive",	 "valid": true,
+revoke B-drive: HTTP 200
+ "label": "B-gmail",	 "valid": false,
+ "label": "B-drive",	 "valid": false,
+
+## 5. Through Claude Code: mcp_login.sh gmail and drive, then mcp_status.sh --verify
+gmail     yes         valid          59  no
+drive     yes         valid          60  no
+# then: mcp_login.sh start drive (sign-in started, not finished), 5 s later:
+gmail     yes         revoked        58  no
+drive     yes         none            -  -
+
+## 6. The refresh token from step 1, after the revocations
+$ oauth_probe.py refresh gmail
+ "http": 400,
+ "error": "Token has been expired or revoked.",
+
+## 7. OAuth metadata: Gmail and People name the same authorization server and revocation endpoint
+== https://gmailmcp.googleapis.com
+auth servers: ['https://accounts.google.com/']
+  revocation_endpoint: https://oauth2.googleapis.com/revoke
+== https://people.googleapis.com
+auth servers: ['https://accounts.google.com/']
+  revocation_endpoint: https://oauth2.googleapis.com/revoke

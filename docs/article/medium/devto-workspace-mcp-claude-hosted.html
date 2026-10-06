@@ -197,8 +197,8 @@ the APIs, register the servers, sign in, and test all eight of them.</p>
 href="https://github.com/xbill9/workspace-mcp-claude">https://github.com/xbill9/workspace-mcp-claude</a></p>
 <p><strong>All eight Workspace servers pass a read-only test from Claude
 Code. Two sign-in limits shape how you use them: each sign-in lasts
-about an hour, and signing People in again revokes every token issued
-before it, so People always goes first.</strong></p>
+about an hour, and signing a working server in again revokes every
+server's token, so all eight sign in together.</strong></p>
 <hr />
 <h4 id="didnt-you-already-do-this">Didn't You Already Do This?</h4>
 <p>Yes! The first two versions of this setup used Gemini CLI and
@@ -353,15 +353,16 @@ credential store, so nothing secret reaches <code>.mcp.json</code> or
 directory only) or <code>project</code> (a shared
 <code>.mcp.json</code>).</p>
 <hr />
-<h4 id="step-7--sign-in-people-first">Step 7 — Sign In, People
-First</h4>
-<p>Sign in People before the other seven. A repeat People sign-in
-revokes every token issued before it, so the order matters every time
-you sign in again. The known issues below have the measurements.</p>
+<h4 id="step-7--sign-in-all-eight-together">Step 7 — Sign In All Eight
+Together</h4>
+<p>Sign all eight servers in one pass. Signing a server in again while
+its token still works revokes every server's token, so sign them in
+together once they have expired. The known issues below have the
+measurements.</p>
 <p>From your own terminal, in the repository directory:</p>
 <pre class="bash"><code>for s in people gmail drive docs sheets slides calendar chat; do claude mcp login $s; done</code></pre>
 <p>Or run <code>/mcp</code> inside Claude Code and pick
-<strong>Authenticate</strong> on each server, People first.</p>
+<strong>Authenticate</strong> on each server.</p>
 <p>Claude Code can also do it for you through the Chrome extension.
 <code>claude mcp login</code> needs a terminal, so
 <code>mcp_login.sh</code> runs it under a pseudo-terminal and prints the
@@ -565,14 +566,14 @@ and checks them without changing anything. Trimmed:</p>
  
 Yes, it works. All eight Workspace servers answered a real read-only call, and Google accepts all eight sign-ins. I didn&#39;t sign in or change anything.
  
-**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show &quot;Needs authentication&quot;, and you&#39;ll need to sign in again with `/mcp`. Sign in to People first, because a repeat People sign-in makes Google revoke the tokens of the other servers.
+**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show &quot;Needs authentication&quot;, and you&#39;ll need to sign in again with `/mcp`.
  
 - **The servers only exist in `~/workspace-mcp-claude`.** They&#39;re registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn&#39;t show them and their tools aren&#39;t available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.</code></pre>
 <p>Moving the servers to <code>user</code> scope drops their sign-ins
 and their client secret, because both are stored per server name. Remove
 the <code>local</code> copies, run
 <code>MCP_SCOPE=user ./claude_setup.sh</code> once more, then sign in to
-all eight again, People first.</p>
+all eight again.</p>
 <hr />
 <h4 id="using-the-skill--what-is-inside">Using the Skill — What Is
 Inside</h4>
@@ -611,21 +612,27 @@ request also asks for offline access (<code>access_type=offline</code>),
 and Claude Code's <code>oauth</code> settings (<code>clientId</code>,
 <code>callbackPort</code>, <code>scopes</code>,
 <code>authServerMetadataUrl</code>) have no field that adds it.</p>
+<p>The same Gmail sign-in made by hand with
+<code>access_type=offline&amp;prompt=consent</code> added returns a
+refresh token, and that refresh token returns a new access token with no
+browser. One parameter closes the gap.</p>
 <p>Plan for a fresh sign-in each working hour.
 <code>mcp_status.sh</code> shows the minutes left.</p>
 <hr />
-<h4 id="known-issue-a-repeat-people-sign-in-revokes-the-others">Known
-Issue: A Repeat People Sign-In Revokes the Others</h4>
-<p>Signing People in again makes Google revoke the token of every server
-signed in before it, while those tokens still have most of their hour
-left. Sign-ins for the other seven revoke nothing. Each row below was
+<h4
+id="known-issue-signing-a-server-in-again-revokes-every-server">Known
+Issue: Signing a Server In Again Revokes Every Server</h4>
+<p>Starting a new sign-in for a server whose token still works makes
+Claude Code revoke that old token, and Google then revokes the whole
+grant for the OAuth client. All eight servers share one client, so every
+server's token goes at once, refresh tokens included. Each row below was
 checked with Google's token-info endpoint:</p>
 <p><img src="https://raw.githubusercontent.com/xbill9/workspace-mcp-claude/main/docs/article/medium/img/devto-workspace-mcp-claude-table-5.png"
-alt="Table: Sign-in order, Tokens Google accepts afterwards" /></p>
-<p>People's repeat sign-in shows one extra step: a "Sign in to Workspace
-MCP Servers" page with your name and profile picture, and a
-<code>profile</code> scope added to the grant. Why Google revokes the
-other tokens is unconfirmed.</p>
+alt="Table: Step, Tokens Google accepts afterwards" /></p>
+<p>A sign-in on its own revokes nothing; the revoke of the old token
+does. A server whose token is already revoked or expired has nothing
+left to revoke, so it can be signed in on its own. After a revocation,
+Google shows the full permissions page again for every server.</p>
 <p>A revoked server is hard to spot. <code>claude mcp list</code> still
 shows it <code>✔ Connected</code>, the stored expiry still shows minutes
 left, and in a session its tools are simply missing. Claude Code's debug
@@ -633,8 +640,8 @@ log has the reason:</p>
 <pre><code>[DEBUG] MCP server &quot;slides&quot;: Connection error: Unauthorized
 [ERROR] MCP server &quot;slides&quot; Failed to fetch tools: Unauthorized</code></pre>
 <p><code>mcp_status.sh --verify</code> reports such a token as
-<code>revoked</code>. <code>bootstrap.sh</code> and the skill sign
-People in first.</p>
+<code>revoked</code>. <code>bootstrap.sh</code> and the skill sign all
+eight in one pass.</p>
 <hr />
 <h4 id="mag_right-tip--connected-means-the-server-answered">🔎 Tip: ✔
 Connected Means the Server Answered</h4>
@@ -692,11 +699,11 @@ URI.</p>
 <h4 id="so-which-one">So, Which One?</h4>
 <p>For terminal work in Claude Code, the
 <code>google-workspace-mcp</code> skill. It registers all eight servers
-with pinned scopes, keeps the secret out of config files, signs People
-in first, and proves the result with a read-only test.</p>
+with pinned scopes, keeps the secret out of config files, signs all
+eight in one pass, and proves the result with a read-only test.</p>
 <p>Plan around the hourly sign-in. <code>mcp_status.sh --verify</code>
-at the start of a session tells you which servers need it, and People
-first keeps one sign-in from undoing the others.</p>
+at the start of a session tells you which servers need it, and signing
+all eight in together keeps one sign-in from undoing the others.</p>
 <hr />
 <h4 id="summary">Summary</h4>
 <p>The goal of this article was to connect Claude Code to Google's eight
@@ -716,16 +723,18 @@ scopes, and the client secret stays out of every config file.</li>
 with manifests and skill that validate.</li>
 <li>⚠️ <strong>Sign-ins last about an hour</strong>, with no refresh
 token issued.</li>
-<li>❌ <strong>A repeat People sign-in revokes the other seven
-tokens</strong>; signing People in first avoids it.</li>
+<li>❌ <strong>Signing a working server in again revokes every server's
+token</strong>, because the eight share one OAuth client; signing all
+eight in together avoids it.</li>
 </ul>
 <p>Scope: one Google Workspace account in the Developer Preview, one
 Google Cloud project with an Internal consent screen and one Web
 application OAuth client shared by all eight servers, Claude Code
-2.1.289 on Linux, checked on 2026-10-04 and 2026-10-05. The revocation
-was reproduced twice with Google's token-info endpoint; its cause on
-Google's side is unconfirmed. Separate OAuth clients per server and
-claude.ai connectors were not tested.</p>
+2.1.289 and 2.1.291 on Linux, checked on 2026-10-04, 2026-10-05 and
+2026-10-06. The revocation was measured with Google's token-info
+endpoint, both through Claude Code and with tokens revoked by hand.
+Separate OAuth clients per server and claude.ai connectors were not
+tested.</p>
 <p>The strategy for using MCP with Google Workspace from Claude Code was
 validated with an incremental step by step approach.</p>
 <hr />

@@ -460,7 +460,7 @@ Asked from the home directory, with no setup files in sight, the skill loads, fi
 
 Yes, it works. All eight Workspace servers answered a real read-only call, and Google accepts all eight sign-ins. I didn't sign in or change anything.
 
-**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show "Needs authentication", and you'll need to sign in again with `/mcp`. Sign in to People first, because a repeat People sign-in makes Google revoke the tokens of the other servers.
+**Sign-ins** (`mcp_status.sh --verify`): all 8 servers are registered and Google accepts all 8 tokens. They have about 38–43 minutes left (People and Gmail run out first), with no refresh token. After that they show "Needs authentication", and you'll need to sign in again with `/mcp`.
 
 - **The servers only exist in `~/workspace-mcp-claude`.** They're registered with `local` scope, so from any other directory (including `~`, where I started) `claude mcp list` doesn't show them and their tools aren't available. If you want Gmail and Drive everywhere, re-register them with `MCP_SCOPE=user`.
 ```
