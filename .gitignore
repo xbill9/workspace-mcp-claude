@@ -9,3 +9,4 @@ client_secret.txt
 # Test and login leftovers
 .bootstrap-test/
 .login-*.out
+__pycache__/
