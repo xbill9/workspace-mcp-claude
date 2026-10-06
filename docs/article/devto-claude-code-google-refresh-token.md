@@ -339,6 +339,21 @@ Six ways to live with it, from no moving parts to the most.
 
 ---
 
+#### How Do Other Clients Ask?
+
+The same Gmail server and OAuth client, set up in two other MCP clients, with each authorization URL captured before sign-in:
+
+| | Claude Code 2.1.291 | Codex CLI 0.158.0 | Antigravity CLI 1.2.12 |
+| :--- | :--- | :--- | :--- |
+| `access_type=offline` | ❌ | ❌ | ✅ with `prompt=consent` |
+| Scopes | pinned per server | passed at login | every scope the server lists, 10 for Gmail |
+| Redirect URI | `localhost:8765/callback` | `callback_url` setting | `https://antigravity.google/oauth-callback` |
+| Client secret kept in | Claude Code's credential store | `config.toml` | `mcp_config.json` |
+
+Codex sends the same request as Claude Code. Antigravity, Google's own client, sends Google's parameter and asks for every scope Gmail lists, including `gmail.send` and `gmail.modify`. Each client needs its redirect URI on the OAuth client, and every client set up with that one OAuth client shares one grant with Google, so the revocation from the Tip above reaches all of them.
+
+---
+
 #### Where Does the Fix Belong?
 
 **Google's authorization server.** SEP-2207 puts the decision with the authorization server's metadata and tells MCP servers to stay out of it. If `accounts.google.com` accepted `offline_access` and listed it in `scopes_supported`, Claude Code's existing code would request it, with no change on Anthropic's side, and so would any other client that follows the MCP guidance.

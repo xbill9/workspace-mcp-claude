@@ -25,7 +25,8 @@ Scripts (run from the user's project directory, never `cd` into the skill):
 Server URLs, the 21 scopes and tool lists are in `references/servers.md`.
 Sign-in limits and how to work with them are in `references/known-issues.md`;
 every other observed quirk (sign-in pages, servers, Claude Code, console) is in
-`references/quirks.md`.
+`references/quirks.md`. Using the servers from Codex CLI, Antigravity CLI or
+Gemini CLI as well is in `references/clients.md`.
 
 ## Start by finding out what is already done
 

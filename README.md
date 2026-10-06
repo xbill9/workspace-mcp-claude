@@ -124,6 +124,7 @@ Most servers show `✔ Connected` before sign-in because they answer `tools/list
 4. Create the OAuth client: **Google Auth Platform → Clients → Create Client**, type **Web application**, and add these Authorized redirect URIs:
    - `http://localhost:8765/callback` (Claude Code, matches `CALLBACK_PORT`)
    - `https://claude.ai/api/mcp/auth_callback` (only if you also add the servers as claude.ai / Claude Desktop custom connectors)
+   - `https://antigravity.google/oauth-callback` (only if you also use Antigravity CLI)
 5. `source ./save_oauth.sh` and enter the client ID and secret.
 6. `./claude_setup.sh`
 7. Authenticate each server with `/mcp` inside Claude Code, or `claude mcp login gmail` (and so on) from the shell. Over SSH, add `--no-browser`.
@@ -153,6 +154,10 @@ Claude.ai and Claude Desktop (Pro, Max, Team or Enterprise) use custom connector
 1. Steps 1–3 above.
 2. `source ./save_oauth.sh` so `${CLIENT_ID}` and `${CLIENT_SECRET}` in `.gemini/settings.json` resolve.
 3. Start Gemini CLI and run `./mcp_setup.sh` for the `/mcp auth` commands.
+
+## Other MCP clients: Codex CLI and Antigravity CLI
+
+The servers work from other MCP clients too, with differences that matter: where each client keeps the client secret, which redirect URI it uses, which scopes it requests and whether it asks Google for a refresh token. Antigravity CLI sends `access_type=offline` and requests every scope a server lists; Codex CLI's request matches Claude Code's. Every client configured with the same OAuth client shares one Google grant, so a re-sign-in in one can sign the others out. Details and setup in [`plugin/skills/google-workspace-mcp/references/clients.md`](plugin/skills/google-workspace-mcp/references/clients.md).
 
 ## Security
 

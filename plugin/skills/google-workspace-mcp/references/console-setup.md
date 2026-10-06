@@ -54,6 +54,10 @@ nothing is pending.
 - Authorized redirect URIs:
   - `http://localhost:8765/callback` (Claude Code; the port is `CALLBACK_PORT`)
   - `https://claude.ai/api/mcp/auth_callback` (only for claude.ai / Claude Desktop connectors)
+  - `https://antigravity.google/oauth-callback` (only for Antigravity CLI)
+
+  Other MCP clients need their own redirect URIs, and every client sharing
+  this OAuth client shares one grant; see `clients.md` before adding them.
 - Leave "This client will be used by an AI-powered agent" unticked; Google's
   guide does not use it.
 - **Create**.

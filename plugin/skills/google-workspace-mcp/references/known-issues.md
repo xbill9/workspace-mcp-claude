@@ -114,6 +114,13 @@ These keep a refresh token outside Claude Code; see
   `cloud-platform` scope and a Desktop OAuth client; the Web client is
   rejected.
 
+## Other MCP clients share the grant
+
+Codex CLI, Antigravity CLI and Gemini CLI configured with this same OAuth
+client are, to Google, the same app, so the revocation in §2 reaches them too.
+Codex sends the same authorization request as Claude Code and should hit the
+same hour; Antigravity sends `access_type=offline`. See `clients.md`.
+
 ## Options not yet tested
 
 - One OAuth client per server, so no two servers share a grant and a revoke

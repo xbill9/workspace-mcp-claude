@@ -24,6 +24,7 @@ This workspace connects Claude Code to the Google Workspace remote MCP servers (
 - Never hardcode project IDs, client IDs or secrets. They live in `~/project_id.txt`, `~/client_id.txt`, `~/client_secret.txt` and `.env`.
 - `.env` (`GOOGLE_CLOUD_PROJECT`) is the source of truth for the active project.
 - Keep the server list, scopes and URLs identical across the skill's scripts and `references/servers.md`, `.gemini/settings.json`, `mcp_setup.sh` and `README.md`.
+- Per-client differences (Codex CLI, Antigravity CLI, Gemini CLI: redirect URIs, secret storage, scopes, refresh tokens) live in `references/clients.md`; update it when a client's behaviour is measured.
 
 ## Safety
 
