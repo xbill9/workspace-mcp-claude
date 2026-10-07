@@ -1,18 +1,22 @@
-Debugging Claude Code and Google MCP Quirks
+More Claude Code and Google Workspace adventures.
 
-Claude Code asks for a refresh token the MCP way, with the offline_access scope; Google issues refresh tokens only through access_type=offline. A step by step check of both sides, and the alternatives, from signing in hourly to scripting the token yourself.
+Why does Claude Code make you sign in to Gmail every hour?
 
-What is in it:
+Claude Code asks for a refresh token the way the MCP spec says, with the offline_access scope. Google issues refresh tokens only through its own access_type=offline, and rejects offline_access as an invalid scope.
 
-- ⚠️ Claude Code stores no refresh token for the Workspace servers, so each sign-in ends with its one-hour access token.
-- ❌ Google lists offline_access nowhere and rejects it with invalid_scope; its own access_type=offline works, but standard MCP clients do not send it.
-- 🟢 Antigravity CLI sends access_type=offline and renews without a browser. Codex CLI behaves like Claude Code.
+Then I ran Codex CLI and Antigravity CLI against the same servers:
+
+- ⚠️ Codex CLI behaves like Claude Code: no refresh token, a sign-in every hour.
+- 🟢 Antigravity CLI sends access_type=offline and renews without a browser.
 - ❌ Antigravity asks for full mailbox access (https://mail.google.com/) and keeps the refresh token in a mode 644 file next to the client secret.
-- ❌ Every client on one OAuth client shares one grant: revoking one Codex token signed Antigravity out too.
+- ❌ Every tool on one OAuth client shares one grant: revoking one Codex token signed Antigravity out too.
 
-dev.to (Google Developer Experts): https://dev.to/gde/debugging-claude-code-and-google-mcp-quirks-8bd
-Medium: https://xbill999.medium.com/debugging-claude-code-and-google-mcp-quirks-9b0124e6a179
-Companion article: https://dev.to/gde/mcp-configuration-for-google-workspace-with-claude-code-11om
-Source: https://github.com/xbill9/workspace-mcp-claude
+The write-up has every command and its output, plus six ways around the hour, from signing in again to scripting the token yourself.
+
+dev.to:
+https://dev.to/gde/debugging-claude-code-and-google-mcp-quirks-8bd
+
+Medium:
+https://xbill999.medium.com/debugging-claude-code-and-google-mcp-quirks-9b0124e6a179
 
 #GDE #ClaudeCode #MCP #GoogleWorkspace #OAuth
