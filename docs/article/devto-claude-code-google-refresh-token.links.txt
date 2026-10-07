@@ -3,3 +3,4 @@ devto-gde = https://dev.to/gde/debugging-claude-code-and-google-mcp-quirks-8bd
 medium = https://xbill999.medium.com/debugging-claude-code-and-google-mcp-quirks-9b0124e6a179
 companion = https://dev.to/gde/mcp-configuration-for-google-workspace-with-claude-code-11om
 repo = https://github.com/xbill9/workspace-mcp-claude
+linkedin = https://www.linkedin.com/feed/update/urn:li:share:7513593737466503168/
